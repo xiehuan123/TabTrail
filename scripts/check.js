@@ -6,6 +6,7 @@ const requiredFiles = [
   "src/background/service-worker.js",
   "src/shared/browser-api.js",
   "src/shared/constants.js",
+  "src/shared/preferences.js",
   "src/shared/recent-activity.js",
   "src/shared/types.js",
   "src/popup/popup.html",
