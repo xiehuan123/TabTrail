@@ -15,7 +15,8 @@ const requiredFiles = [
   "src/popup/popup-model.js",
   "src/sidepanel/sidepanel.html",
   "src/sidepanel/sidepanel.css",
-  "src/sidepanel/sidepanel.js"
+  "src/sidepanel/sidepanel.js",
+  "src/sidepanel/sidepanel-model.js"
 ];
 
 for (const file of requiredFiles) {
