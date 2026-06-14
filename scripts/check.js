@@ -12,6 +12,7 @@ const requiredFiles = [
   "src/popup/popup.html",
   "src/popup/popup.css",
   "src/popup/popup.js",
+  "src/popup/popup-model.js",
   "src/sidepanel/sidepanel.html",
   "src/sidepanel/sidepanel.css",
   "src/sidepanel/sidepanel.js"
