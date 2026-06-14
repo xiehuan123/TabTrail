@@ -25,3 +25,12 @@ test("side panel exposes workbench layout regions", async () => {
   assert.match(css, /\.panel-actions/);
   assert.match(css, /min-height:\s*44px/);
 });
+
+test("side panel explains focus mode browser boundaries", async () => {
+  const html = await readFile("src/sidepanel/sidepanel.html", "utf8");
+
+  assert.match(html, /id="focus-mode-panel"/);
+  assert.match(html, /不能直接隐藏浏览器原生顶部标签栏/);
+  assert.match(html, /关闭 3 个及以上标签前会再次确认/);
+  assert.match(html, /最近关闭/);
+});

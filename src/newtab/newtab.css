@@ -155,6 +155,30 @@ h2 {
   box-shadow: var(--tt-shadow-sm);
 }
 
+.focus-panel {
+  display: grid;
+  gap: var(--tt-space-2);
+  border: 1px solid var(--tt-color-warning);
+  border-radius: var(--tt-radius-md);
+  padding: var(--tt-space-3);
+  background: var(--tt-color-warning-weak);
+}
+
+.focus-panel h3,
+.focus-panel p {
+  margin: 0;
+}
+
+.focus-panel h3 {
+  font-size: 13px;
+}
+
+.focus-panel p {
+  color: var(--tt-color-text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .dashboard-toolbar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);

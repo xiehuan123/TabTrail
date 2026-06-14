@@ -162,6 +162,31 @@ h1 {
   background: var(--tt-color-surface);
 }
 
+.focus-panel {
+  display: grid;
+  gap: var(--tt-space-2);
+  border: 1px solid var(--tt-color-warning);
+  border-radius: var(--tt-radius-lg);
+  padding: var(--tt-space-3);
+  background: var(--tt-color-warning-weak);
+  color: var(--tt-color-text);
+}
+
+.focus-panel h2,
+.focus-panel p {
+  margin: 0;
+}
+
+.focus-panel h2 {
+  font-size: 13px;
+}
+
+.focus-panel p {
+  color: var(--tt-color-text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .recent-panel h2 {
   margin: 0;
   color: var(--tt-color-text-muted);

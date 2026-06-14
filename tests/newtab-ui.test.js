@@ -24,3 +24,11 @@ test("new tab dashboard exposes workbench regions without search override wordin
   assert.match(css, /@media \(max-width:\s*767px\)/);
   assert.match(css, /min-height:\s*44px/);
 });
+
+test("new tab dashboard exposes focus mode guidance", async () => {
+  const html = await readFile("src/newtab/newtab.html", "utf8");
+
+  assert.match(html, /id="dashboard-focus-mode"/);
+  assert.match(html, /不能直接隐藏浏览器原生顶部标签栏/);
+  assert.match(html, /关闭后可从最近关闭重新打开/);
+});
