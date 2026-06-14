@@ -11,7 +11,7 @@ export function getDomain(url) {
 
 export function toTabSnapshot(tab) {
   return {
-    tabId: tab.id,
+    tabId: tab.id ?? tab.tabId,
     windowId: tab.windowId,
     title: tab.title || tab.url || "未命名标签",
     url: tab.url || "",

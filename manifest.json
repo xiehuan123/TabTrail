@@ -9,6 +9,9 @@
     "default_title": "TabTrail",
     "default_popup": "src/popup/popup.html"
   },
+  "chrome_url_overrides": {
+    "newtab": "src/newtab/newtab.html"
+  },
   "background": {
     "service_worker": "src/background/service-worker.js",
     "type": "module"

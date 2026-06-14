@@ -10,6 +10,7 @@ test("manifest declares the MV3 extension entry points", async () => {
   assert.equal(manifest.manifest_version, 3);
   assert.equal(manifest.name, "TabTrail");
   assert.equal(manifest.action.default_popup, "src/popup/popup.html");
+  assert.equal(manifest.chrome_url_overrides.newtab, "src/newtab/newtab.html");
   assert.equal(manifest.background.service_worker, "src/background/service-worker.js");
   assert.equal(manifest.background.type, "module");
   assert.equal(manifest.side_panel.default_path, "src/sidepanel/sidepanel.html");

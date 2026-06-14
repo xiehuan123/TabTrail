@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TabTrail 工作台</title>
+    <link rel="stylesheet" href="./newtab.css">
+  </head>
+  <body>
+    <main class="dashboard-shell">
+      <header class="dashboard-header">
+        <div>
+          <p class="eyebrow">TabTrail</p>
+          <h1>标签工作台</h1>
+        </div>
+        <div class="dashboard-command">
+          <label class="dashboard-search">
+            <span>搜索标签</span>
+            <input id="dashboard-search" type="search" placeholder="标题、URL、域名" autocomplete="off">
+          </label>
+          <button id="dashboard-open-side-panel" class="primary-action" type="button">打开侧边栏</button>
+        </div>
+      </header>
+
+      <section class="dashboard-summary" aria-label="当前状态">
+        <div class="summary-item">
+          <span class="summary-value" id="dashboard-open-count">0</span>
+          <span class="summary-label">当前范围</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-value" id="dashboard-visible-count">0</span>
+          <span class="summary-label">匹配标签</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-value" id="dashboard-closed-count">0</span>
+          <span class="summary-label">最近关闭</span>
+        </div>
+      </section>
+
+      <div class="dashboard-layout">
+        <aside class="dashboard-column" aria-label="最近记录">
+          <section id="dashboard-recent-active" class="dashboard-section" aria-labelledby="dashboard-active-title">
+            <h2 id="dashboard-active-title">最近活跃</h2>
+            <ul id="dashboard-active-list" class="compact-list"></ul>
+          </section>
+          <section id="dashboard-recent-closed" class="dashboard-section" aria-labelledby="dashboard-closed-title">
+            <h2 id="dashboard-closed-title">最近关闭</h2>
+            <ul id="dashboard-closed-list" class="compact-list"></ul>
+          </section>
+        </aside>
+
+        <section class="dashboard-main" aria-labelledby="dashboard-tabs-title">
+          <div class="dashboard-toolbar">
+            <h2 id="dashboard-tabs-title">打开的标签</h2>
+            <div id="dashboard-scope" class="scope-switch" role="tablist" aria-label="标签范围">
+              <button type="button" class="scope-button is-active" data-scope="current-window">当前窗口</button>
+              <button type="button" class="scope-button" data-scope="all-windows">全部窗口</button>
+            </div>
+          </div>
+          <section id="dashboard-groups" class="dashboard-groups" aria-live="polite"></section>
+        </section>
+
+        <aside id="dashboard-actions" class="dashboard-actions" aria-label="整理操作">
+          <h2>整理操作</h2>
+          <button id="dashboard-apply-order" class="secondary-action" type="button">应用排序</button>
+          <button id="dashboard-close-selected" class="danger-action" type="button">关闭已选 (0)</button>
+          <p id="dashboard-message" class="dashboard-message">在这里整理标签，不会修改默认搜索设置。</p>
+        </aside>
+      </div>
+    </main>
+    <script type="module" src="./newtab.js"></script>
+  </body>
+</html>
