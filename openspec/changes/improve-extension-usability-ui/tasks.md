@@ -57,8 +57,8 @@
 
 ## 7. 构建与浏览器验证
 
-- [ ] 7.1 运行 `npm test`、`npm run check`、`npm run build` 和 `npm run verify`
+- [x] 7.1 运行 `npm test`、`npm run check`、`npm run build` 和 `npm run verify`
 - [ ] 7.2 在 Chrome 手动验证 popup、side panel、新标签页覆盖、最近活跃、最近关闭、分类、排序和专注整理
 - [ ] 7.3 在 Edge 手动验证 popup、side panel、新标签页覆盖和最近记录基础能力
-- [ ] 7.4 更新打包或安装说明，标注新标签页覆盖和浏览器限制
-- [ ] 7.5 完成最终验证文档更新后提交 git commit
+- [x] 7.4 更新打包或安装说明，标注新标签页覆盖和浏览器限制
+- [x] 7.5 完成最终验证文档更新后提交 git commit
