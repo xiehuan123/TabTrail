@@ -1,6 +1,7 @@
-import { STORAGE_KEYS } from "../shared/constants.js";
+import { LIMITS, STORAGE_KEYS } from "../shared/constants.js";
 import { readPreferences } from "../shared/preferences.js";
 import { clearClosedActivities, getRecentClosedTabs } from "../shared/recent-activity.js";
+import { getPinnedKey } from "../popup/popup-model.js";
 
 export const SCOPES = Object.freeze({
   currentWindow: "current-window",
@@ -91,6 +92,60 @@ export function createRecentlyClosedGroup(closedActivities) {
   };
 }
 
+export function reorderPreviewTabs(tabs, tabId, targetIndex) {
+  const currentIndex = tabs.findIndex((tab) => tab.tabId === tabId);
+  if (currentIndex < 0) {
+    return tabs;
+  }
+
+  const boundedIndex = Math.max(0, Math.min(targetIndex, tabs.length - 1));
+  const next = [...tabs];
+  const [moved] = next.splice(currentIndex, 1);
+  next.splice(boundedIndex, 0, moved);
+  return next;
+}
+
+export async function applyPreviewOrderToTabStrip(tabsApi, orderedTabs) {
+  for (const [index, tab] of orderedTabs.entries()) {
+    await tabsApi.move(tab.tabId, { index });
+  }
+}
+
+export async function closeSelectedTabs({ tabsApi, confirm = async () => true }, tabIds) {
+  const count = tabIds.length;
+  if (count === 0) {
+    return { closed: false, confirmed: false, count };
+  }
+
+  let confirmed = false;
+  if (count >= LIMITS.bulkCloseConfirmThreshold) {
+    confirmed = await confirm(count);
+    if (!confirmed) {
+      return { closed: false, confirmed: false, count };
+    }
+  }
+
+  await tabsApi.remove(tabIds);
+  return { closed: true, confirmed, count };
+}
+
+export async function togglePinnedPreference(syncArea, preferences, tab) {
+  const key = getPinnedKey(tab);
+  const pinned = new Set(preferences.pinnedKeys);
+  if (pinned.has(key)) {
+    pinned.delete(key);
+  } else {
+    pinned.add(key);
+  }
+
+  const next = {
+    ...preferences,
+    pinnedKeys: [...pinned]
+  };
+  await syncArea.set({ [STORAGE_KEYS.preferences]: next });
+  return next;
+}
+
 export async function buildSidePanelState({
   local,
   sync,
@@ -112,7 +167,10 @@ export async function buildSidePanelState({
     query,
     visibleTabs,
     groups: [...manualGroups, ...domainGroups, recentlyClosed],
-    preferences
+    preferences,
+    actions: {
+      togglePinned: (tab) => togglePinnedPreference(sync, preferences, tab)
+    }
   };
 }
 

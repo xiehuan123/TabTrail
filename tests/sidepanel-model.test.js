@@ -4,15 +4,19 @@ import test from "node:test";
 import { ACTIVITY_TYPES, STORAGE_KEYS } from "../src/shared/constants.js";
 import { createActivity, toTabSnapshot } from "../src/shared/recent-activity.js";
 import {
+  applyPreviewOrderToTabStrip,
   buildSidePanelState,
+  closeSelectedTabs,
   filterTabs,
   groupTabsByDomain,
+  reorderPreviewTabs,
   selectTabsByScope
 } from "../src/sidepanel/sidepanel-model.js";
 
 function createArea(initial = {}) {
   const state = new Map(Object.entries(initial));
   return {
+    state,
     async get(key) {
       return { [key]: state.get(key) };
     },
@@ -118,4 +122,93 @@ test("searches only within the selected scope", async () => {
 
   assert.equal(currentWindowState.visibleTabs.length, 0);
   assert.deepEqual(allWindowState.visibleTabs.map((tab) => tab.tabId), [3]);
+});
+
+test("reorders preview tabs without calling browser tab movement", () => {
+  const tabsApi = {
+    move() {
+      throw new Error("tabs.move must not be called during preview sorting");
+    }
+  };
+
+  const reordered = reorderPreviewTabs(tabs, 3, 0, tabsApi);
+
+  assert.deepEqual(reordered.map((tab) => tab.tabId), [3, 1, 2]);
+});
+
+test("applies preview order to the browser tab strip only when requested", async () => {
+  const calls = [];
+  const tabsApi = {
+    async move(tabId, options) {
+      calls.push([tabId, options]);
+    }
+  };
+
+  await applyPreviewOrderToTabStrip(tabsApi, tabs.slice().reverse());
+
+  assert.deepEqual(calls, [
+    [3, { index: 0 }],
+    [2, { index: 1 }],
+    [1, { index: 2 }]
+  ]);
+});
+
+test("closes one or two selected tabs without confirmation", async () => {
+  const calls = [];
+  const tabsApi = {
+    async remove(tabIds) {
+      calls.push(tabIds);
+    }
+  };
+
+  const result = await closeSelectedTabs({ tabsApi }, [1, 2]);
+
+  assert.deepEqual(calls, [[1, 2]]);
+  assert.deepEqual(result, { closed: true, confirmed: false, count: 2 });
+});
+
+test("requires confirmation before closing three or more tabs", async () => {
+  const calls = [];
+  const tabsApi = {
+    async remove(tabIds) {
+      calls.push(tabIds);
+    }
+  };
+
+  const rejected = await closeSelectedTabs({ tabsApi, confirm: async () => false }, [1, 2, 3]);
+  const accepted = await closeSelectedTabs({ tabsApi, confirm: async () => true }, [1, 2, 3]);
+
+  assert.deepEqual(rejected, { closed: false, confirmed: false, count: 3 });
+  assert.deepEqual(accepted, { closed: true, confirmed: true, count: 3 });
+  assert.deepEqual(calls, [[1, 2, 3]]);
+});
+
+test("stores extension pinned state without changing native pinned state", async () => {
+  const sync = createArea({
+    [STORAGE_KEYS.preferences]: {
+      manualCategories: {},
+      pinnedKeys: [],
+      previewOrders: {},
+      defaultScope: "current-window"
+    }
+  });
+  const tabsApi = {
+    async update() {
+      throw new Error("native pinned state must not be changed");
+    }
+  };
+
+  const state = await buildSidePanelState({
+    local: createArea(),
+    sync,
+    tabs,
+    currentWindowId: 10,
+    scope: "current-window"
+  });
+
+  await state.actions.togglePinned(tabs[0], tabsApi);
+
+  assert.deepEqual(sync.state.get(STORAGE_KEYS.preferences).pinnedKeys, [
+    "url:https://github.com/acme/issue"
+  ]);
 });
