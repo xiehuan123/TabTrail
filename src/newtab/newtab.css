@@ -90,11 +90,87 @@ h2 {
   cursor: pointer;
 }
 
+.primary-action {
+  border: 1px solid var(--tt-color-primary);
+  background: var(--tt-color-primary);
+  color: #ffffff;
+}
+
 .secondary-action,
 .scope-button {
   border: 1px solid var(--tt-color-border-strong);
   background: var(--tt-color-surface);
   color: var(--tt-color-text-muted);
+}
+
+.onboarding-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 620px) auto;
+  gap: var(--tt-space-4);
+  align-items: center;
+  border: 1px solid var(--tt-color-primary);
+  border-radius: var(--tt-radius-lg);
+  padding: var(--tt-space-4);
+  background: var(--tt-color-primary-weak);
+  box-shadow: var(--tt-shadow-sm);
+}
+
+.onboarding-panel[hidden] {
+  display: none;
+}
+
+.onboarding-copy {
+  min-width: 0;
+}
+
+.onboarding-copy p,
+.onboarding-steps {
+  margin: 0;
+}
+
+.onboarding-copy p:not(.eyebrow) {
+  color: var(--tt-color-text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.onboarding-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--tt-space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.onboarding-steps li {
+  display: grid;
+  gap: var(--tt-space-1);
+  min-width: 0;
+  border: 1px solid var(--tt-color-border);
+  border-radius: var(--tt-radius-md);
+  padding: var(--tt-space-2);
+  background: var(--tt-color-surface);
+}
+
+.onboarding-steps strong {
+  font-size: 13px;
+}
+
+.onboarding-steps span {
+  color: var(--tt-color-text-subtle);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.onboarding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tt-space-2);
+  justify-content: flex-end;
+}
+
+#onboarding-reopen {
+  justify-self: start;
 }
 
 .secondary-action:disabled,
@@ -395,8 +471,17 @@ h2 {
 @media (max-width: 1023px) {
   .dashboard-header,
   .dashboard-layout,
+  .onboarding-panel,
   .section-heading {
     grid-template-columns: 1fr;
+  }
+
+  .onboarding-actions {
+    justify-content: stretch;
+  }
+
+  .onboarding-actions button {
+    flex: 1 1 160px;
   }
 
   .dashboard-actions {
@@ -415,6 +500,7 @@ h2 {
 
   .dashboard-command,
   .dashboard-toolbar,
+  .onboarding-steps,
   .dashboard-summary {
     grid-template-columns: 1fr;
   }

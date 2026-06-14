@@ -5,8 +5,33 @@ export const DEFAULT_PREFERENCES = Object.freeze({
   pinnedKeys: [],
   previewOrders: {},
   defaultScope: "current-window",
-  actionClickBehavior: "popup"
+  actionClickBehavior: "popup",
+  onboarding: {
+    firstInstallGuideStatus: "completed",
+    firstInstallGuideVersion: 1,
+    firstInstallGuideSeenAt: null
+  }
 });
+
+const ONBOARDING_STATUSES = new Set(["pending", "completed", "skipped"]);
+
+function normalizeOnboarding(value) {
+  const status = ONBOARDING_STATUSES.has(value?.firstInstallGuideStatus)
+    ? value.firstInstallGuideStatus
+    : DEFAULT_PREFERENCES.onboarding.firstInstallGuideStatus;
+  const version = Number.isInteger(value?.firstInstallGuideVersion)
+    ? value.firstInstallGuideVersion
+    : DEFAULT_PREFERENCES.onboarding.firstInstallGuideVersion;
+  const seenAt = Number.isFinite(value?.firstInstallGuideSeenAt)
+    ? value.firstInstallGuideSeenAt
+    : DEFAULT_PREFERENCES.onboarding.firstInstallGuideSeenAt;
+
+  return {
+    firstInstallGuideStatus: status,
+    firstInstallGuideVersion: version,
+    firstInstallGuideSeenAt: seenAt
+  };
+}
 
 function normalizePreferences(value) {
   return {
@@ -24,7 +49,8 @@ function normalizePreferences(value) {
       : DEFAULT_PREFERENCES.defaultScope,
     actionClickBehavior: value?.actionClickBehavior === "side-panel"
       ? "side-panel"
-      : DEFAULT_PREFERENCES.actionClickBehavior
+      : DEFAULT_PREFERENCES.actionClickBehavior,
+    onboarding: normalizeOnboarding(value?.onboarding)
   };
 }
 
@@ -41,6 +67,35 @@ export async function savePreferences(syncArea, preferences) {
   } catch (error) {
     return { ok: false, preferences: normalized, error };
   }
+}
+
+async function updateOnboardingStatus(syncArea, status, seenAt) {
+  const preferences = await readPreferences(syncArea);
+  const next = {
+    ...preferences,
+    onboarding: {
+      ...preferences.onboarding,
+      firstInstallGuideStatus: status,
+      firstInstallGuideVersion: 1,
+      firstInstallGuideSeenAt: Number.isFinite(seenAt)
+        ? seenAt
+        : preferences.onboarding.firstInstallGuideSeenAt
+    }
+  };
+
+  return savePreferences(syncArea, next);
+}
+
+export async function markOnboardingPending(syncArea, seenAt = Date.now()) {
+  return updateOnboardingStatus(syncArea, "pending", seenAt);
+}
+
+export async function markOnboardingCompleted(syncArea) {
+  return updateOnboardingStatus(syncArea, "completed");
+}
+
+export async function markOnboardingSkipped(syncArea) {
+  return updateOnboardingStatus(syncArea, "skipped");
 }
 
 export async function readActivities(localArea) {

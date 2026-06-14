@@ -7,6 +7,10 @@ import {
 } from "../shared/interaction-helpers.js";
 import { toTabSnapshot } from "../shared/recent-activity.js";
 import {
+  markOnboardingCompleted,
+  markOnboardingSkipped
+} from "../shared/preferences.js";
+import {
   activateTabFromDashboard,
   assignDashboardTabToCategory,
   buildNewTabDashboardState,
@@ -37,6 +41,10 @@ const applyOrderButton = document.querySelector("#dashboard-apply-order");
 const closeCategoryButton = document.querySelector("#dashboard-close-category");
 const closeSelectedButton = document.querySelector("#dashboard-close-selected");
 const message = document.querySelector("#dashboard-message");
+const firstInstallOnboarding = document.querySelector("#first-install-onboarding");
+const onboardingStart = document.querySelector("#onboarding-start");
+const onboardingSkip = document.querySelector("#onboarding-skip");
+const onboardingReopen = document.querySelector("#onboarding-reopen");
 
 let scope = SCOPES.currentWindow;
 let currentWindowId = null;
@@ -47,9 +55,38 @@ let draggedTabId = null;
 let hasPendingOrder = false;
 const selectedTabIds = new Set();
 const pendingOrderMessage = "有未应用排序";
+let onboardingInitialized = false;
 
 function announce(text) {
   message.textContent = text;
+}
+
+function showOnboarding() {
+  firstInstallOnboarding.hidden = false;
+}
+
+function hideOnboarding() {
+  firstInstallOnboarding.hidden = true;
+}
+
+function syncOnboardingState(preferences) {
+  if (onboardingInitialized) {
+    return;
+  }
+  onboardingInitialized = true;
+  if (preferences.onboarding?.firstInstallGuideStatus === "pending") {
+    showOnboarding();
+  }
+}
+
+async function completeOnboarding(action) {
+  const result = action === "skipped"
+    ? await markOnboardingSkipped(browserApi.storage.sync)
+    : await markOnboardingCompleted(browserApi.storage.sync);
+  hideOnboarding();
+  announce(result.ok
+    ? "新手引导已关闭"
+    : "新手引导已关闭，但状态无法同步保存");
 }
 
 function syncScopeButtons() {
@@ -393,6 +430,7 @@ async function render() {
   });
   selectedCategoryId = latestState.selectedCategoryId;
   previewTabs = latestState.visibleTabs;
+  syncOnboardingState(latestState.preferences);
   renderSummary(latestState);
   syncScopeButtons();
   renderCategories(latestState);
@@ -420,6 +458,20 @@ const debouncedRender = createDebouncedTask(() => render(), 120);
 search.addEventListener("input", () => debouncedRender());
 
 categoryName.addEventListener("input", () => renderActionState());
+
+onboardingStart.addEventListener("click", () => {
+  completeOnboarding("completed");
+});
+
+onboardingSkip.addEventListener("click", () => {
+  completeOnboarding("skipped");
+});
+
+onboardingReopen.addEventListener("click", () => {
+  showOnboarding();
+  firstInstallOnboarding.focus?.();
+  announce("已重新打开新手引导");
+});
 
 assignCategoryButton.addEventListener("click", async () => {
   const selected = previewTabs.filter((tab) => selectedTabIds.has(tab.tabId));

@@ -21,8 +21,8 @@ test("new tab dashboard exposes category-first regions without side panel entry"
     assert.match(html, new RegExp(`id="${id}"`));
   }
 
-  assert.doesNotMatch(html, /id="dashboard-open-side-panel"|打开侧边栏/);
-  assert.doesNotMatch(html, /默认搜索引擎|搜索引擎设置|chrome_settings_overrides/);
+  assert.doesNotMatch(html, /id="dashboard-open-side-panel"/);
+  assert.doesNotMatch(html, /搜索引擎设置|chrome_settings_overrides/);
   assert.match(css, /\.dashboard-shell/);
   assert.match(css, /\.category-grid/);
   assert.match(css, /grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(160px,\s*1fr\)\)/);
@@ -37,6 +37,54 @@ test("new tab dashboard exposes focus mode guidance", async () => {
   assert.match(html, /id="dashboard-focus-mode"/);
   assert.match(html, /不能直接隐藏浏览器原生顶部标签栏/);
   assert.match(html, /关闭后可从最近关闭重新打开/);
+});
+
+test("new tab dashboard exposes first install onboarding without blocking the workbench", async () => {
+  const html = await readFile("src/newtab/newtab.html", "utf8");
+  const css = await readFile("src/newtab/newtab.css", "utf8");
+
+  for (const id of [
+    "first-install-onboarding",
+    "onboarding-start",
+    "onboarding-skip",
+    "onboarding-reopen"
+  ]) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+
+  for (const text of [
+    "欢迎使用 TabTrail",
+    "选择整理范围",
+    "打开侧边栏",
+    "从最近关闭恢复",
+    "不上传标签数据",
+    "不会修改默认搜索引擎"
+  ]) {
+    assert.match(html, new RegExp(text));
+  }
+
+  assert.match(html, /hidden/);
+  assert.match(css, /\.onboarding-panel/);
+  assert.match(css, /\.onboarding-steps/);
+  assert.match(css, /#onboarding-reopen/);
+  assert.match(css, /@media \(max-width:\s*767px\)/);
+});
+
+test("new tab dashboard wires onboarding state transitions", async () => {
+  const js = await readFile("src/newtab/newtab.js", "utf8");
+
+  for (const pattern of [
+    /markOnboardingCompleted/,
+    /markOnboardingSkipped/,
+    /firstInstallGuideStatus === "pending"/,
+    /onboardingStart/,
+    /onboardingSkip/,
+    /onboardingReopen/,
+    /showOnboarding/,
+    /hideOnboarding/
+  ]) {
+    assert.match(js, pattern);
+  }
 });
 
 test("new tab dashboard wires category assignment and drag targets", async () => {

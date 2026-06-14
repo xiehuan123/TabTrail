@@ -142,3 +142,19 @@ test("close and sort actions expose recovery and pending-state feedback", async 
   assert.match(sidepanelJs, /有未应用排序/);
   assert.match(newtabJs, /有未应用排序/);
 });
+
+test("first install onboarding is accessible and publish-compliance aware", async () => {
+  const { newtabHtml, newtabCss, newtabJs } = await readAll();
+  const source = [newtabHtml, newtabCss, newtabJs].join("\n");
+
+  assert.match(newtabHtml, /id="first-install-onboarding"/);
+  assert.match(newtabHtml, /aria-labelledby="onboarding-title"/);
+  assert.match(newtabHtml, /role="status"/);
+  assert.match(newtabHtml, /不上传标签数据/);
+  assert.match(newtabHtml, /不会修改默认搜索引擎/);
+  assert.match(newtabHtml, /跳过/);
+  assert.match(newtabHtml, /重新查看新手引导/);
+  assert.match(newtabCss, /\.onboarding-panel/);
+  assert.match(newtabCss, /min-height:\s*44px/);
+  assert.doesNotMatch(source, /https?:\/\/|chrome_settings_overrides|默认搜索框/);
+});

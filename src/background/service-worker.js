@@ -1,12 +1,17 @@
 import { browserApi } from "../shared/browser-api.js";
 import { ACTIVITY_TYPES } from "../shared/constants.js";
 import { recordTabActivity } from "../shared/recent-activity.js";
+import { handleInstalled } from "./install-events.js";
 import { handleTabRemoved } from "./tab-events.js";
 
-browserApi.runtime.onInstalled.addListener(() => {
-  if (browserApi.sidePanel?.setPanelBehavior) {
-    browserApi.sidePanel.setPanelBehavior({ openPanelOnActionClick: false });
-  }
+browserApi.runtime.onInstalled.addListener((details) => {
+  handleInstalled({
+    reason: details?.reason,
+    syncArea: browserApi.storage.sync,
+    tabsApi: browserApi.tabs,
+    sidePanelApi: browserApi.sidePanel,
+    runtimeApi: browserApi.runtime
+  });
 });
 
 const tabCache = new Map();

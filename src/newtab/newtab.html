@@ -25,6 +25,32 @@
         </div>
       </header>
 
+      <section id="first-install-onboarding" class="onboarding-panel" aria-labelledby="onboarding-title" role="status" aria-live="polite" aria-atomic="true" hidden>
+        <div class="onboarding-copy">
+          <p class="eyebrow">首次安装</p>
+          <h2 id="onboarding-title">欢迎使用 TabTrail</h2>
+          <p>用 3 步开始整理当前打开的标签。TabTrail 不上传标签数据，也不会修改默认搜索引擎。</p>
+        </div>
+        <ol class="onboarding-steps" aria-label="新手引导步骤">
+          <li>
+            <strong>选择整理范围</strong>
+            <span>先用当前窗口整理手头任务，需要全局视图时再切到全部窗口。</span>
+          </li>
+          <li>
+            <strong>打开侧边栏</strong>
+            <span>边浏览边整理标签，适合持续搜索、归类和排序。</span>
+          </li>
+          <li>
+            <strong>从最近关闭恢复</strong>
+            <span>批量关闭后，可以从最近关闭重新打开需要的页面。</span>
+          </li>
+        </ol>
+        <div class="onboarding-actions">
+          <button id="onboarding-start" class="primary-action" type="button">开始使用 TabTrail</button>
+          <button id="onboarding-skip" class="secondary-action" type="button">跳过</button>
+        </div>
+      </section>
+
       <section class="dashboard-summary" aria-label="当前状态">
         <div class="summary-item">
           <span class="summary-value" id="dashboard-open-count">0</span>
@@ -85,6 +111,7 @@
             <h3 id="dashboard-focus-title">专注整理</h3>
             <p>TabTrail 不能直接隐藏浏览器原生顶部标签栏。可以用新标签页和侧边栏替代浏览器标签栏的日常整理入口。</p>
             <p>批量关闭会先确认，关闭后可从最近关闭重新打开。</p>
+            <button id="onboarding-reopen" class="secondary-action" type="button">重新查看新手引导</button>
           </section>
         </aside>
       </div>
