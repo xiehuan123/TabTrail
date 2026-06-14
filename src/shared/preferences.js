@@ -4,7 +4,8 @@ export const DEFAULT_PREFERENCES = Object.freeze({
   manualCategories: {},
   pinnedKeys: [],
   previewOrders: {},
-  defaultScope: "current-window"
+  defaultScope: "current-window",
+  actionClickBehavior: "popup"
 });
 
 function normalizePreferences(value) {
@@ -20,7 +21,10 @@ function normalizePreferences(value) {
       : DEFAULT_PREFERENCES.previewOrders,
     defaultScope: value?.defaultScope === "all-windows"
       ? "all-windows"
-      : DEFAULT_PREFERENCES.defaultScope
+      : DEFAULT_PREFERENCES.defaultScope,
+    actionClickBehavior: value?.actionClickBehavior === "side-panel"
+      ? "side-panel"
+      : DEFAULT_PREFERENCES.actionClickBehavior
   };
 }
 

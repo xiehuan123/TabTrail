@@ -22,6 +22,12 @@ body {
   justify-content: space-between;
 }
 
+.eyebrow {
+  margin: 0 0 var(--tt-space-1);
+  color: var(--tt-color-text-subtle);
+  font-size: 12px;
+}
+
 h1,
 h2 {
   margin: 0;
@@ -33,6 +39,105 @@ h2 {
   margin-bottom: var(--tt-space-2);
   font-size: 13px;
   color: var(--tt-color-text-muted);
+}
+
+.entry-panel {
+  display: grid;
+  gap: var(--tt-space-3);
+  border: 1px solid var(--tt-color-border);
+  border-radius: var(--tt-radius-lg);
+  padding: var(--tt-space-3);
+  background: var(--tt-color-surface);
+  box-shadow: var(--tt-shadow-sm);
+}
+
+.entry-copy {
+  display: grid;
+  gap: var(--tt-space-1);
+}
+
+.entry-copy h2 {
+  margin: 0;
+  color: var(--tt-color-text);
+  font-size: 15px;
+}
+
+.status-text {
+  margin: 0;
+  color: var(--tt-color-text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border: 1px solid var(--tt-color-primary);
+  border-radius: var(--tt-radius-md);
+  padding: 0 var(--tt-space-3);
+  background: var(--tt-color-primary);
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--tt-motion-fast) ease, border-color var(--tt-motion-fast) ease;
+}
+
+.primary-action:hover {
+  border-color: var(--tt-color-primary-strong);
+  background: var(--tt-color-primary-strong);
+}
+
+.primary-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.preference-row {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: start;
+  gap: var(--tt-space-2);
+  color: var(--tt-color-text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.preference-row input {
+  width: 16px;
+  height: 16px;
+  margin: 1px 0 0;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--tt-space-2);
+}
+
+.summary-item {
+  display: grid;
+  gap: var(--tt-space-1);
+  min-width: 0;
+  border: 1px solid var(--tt-color-border);
+  border-radius: var(--tt-radius-md);
+  padding: var(--tt-space-2);
+  background: var(--tt-color-surface);
+}
+
+.summary-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--tt-color-text);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.summary-label {
+  overflow-wrap: anywhere;
+  color: var(--tt-color-text-subtle);
+  font-size: 11px;
 }
 
 .tab-list {
@@ -69,7 +174,8 @@ h2 {
 }
 
 .tab-title,
-.tab-domain {
+.tab-domain,
+.tab-time {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -83,4 +189,16 @@ h2 {
 .tab-domain {
   color: var(--tt-color-text-subtle);
   font-size: 12px;
+}
+
+.tab-meta {
+  display: flex;
+  gap: var(--tt-space-2);
+  min-width: 0;
+}
+
+.tab-time {
+  color: var(--tt-color-primary-strong);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }

@@ -9,8 +9,36 @@
   <body>
     <main class="popup-shell">
       <header class="popup-header">
-        <h1>TabTrail</h1>
+        <div>
+          <p class="eyebrow">标签工作台</p>
+          <h1>TabTrail</h1>
+        </div>
       </header>
+      <section class="entry-panel" aria-labelledby="entry-title">
+        <div class="entry-copy">
+          <h2 id="entry-title">快速整理</h2>
+          <p id="side-panel-status" class="status-text">正在检查侧边栏能力...</p>
+        </div>
+        <button id="open-side-panel" class="primary-action" type="button">打开侧边栏</button>
+        <label class="preference-row">
+          <input id="action-click-behavior" type="checkbox">
+          <span>点击扩展图标时直接打开侧边栏</span>
+        </label>
+      </section>
+      <section class="summary-grid" aria-label="当前状态摘要">
+        <div class="summary-item">
+          <span class="summary-value" id="summary-open-tabs">0</span>
+          <span class="summary-label">打开标签</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-value" id="summary-recent-active">0</span>
+          <span class="summary-label">最近活跃</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-value" id="summary-recent-closed">0</span>
+          <span class="summary-label">最近关闭</span>
+        </div>
+      </section>
       <section aria-labelledby="recent-active-title">
         <h2 id="recent-active-title">最近活跃</h2>
         <ul id="recent-active-list" class="tab-list"></ul>
