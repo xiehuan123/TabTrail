@@ -13,6 +13,12 @@ test("release metadata is ready for version 0.2.0", async () => {
   assert.equal(manifest.version, packageJson.version);
 });
 
+test("test script only discovers committed repository tests", async () => {
+  const packageJson = await readJson("package.json");
+
+  assert.equal(packageJson.scripts.test, "node --test tests");
+});
+
 test("README explains installation features permissions privacy limits and usage in Chinese", async () => {
   const readme = await readFile("README.md", "utf8");
 
