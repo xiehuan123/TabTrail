@@ -1,8 +1,8 @@
+@import url("../shared/ui-tokens.css");
+
 :root {
-  color-scheme: light;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #1f2937;
-  background: #f8fafc;
+  color: var(--tt-color-text);
+  background: var(--tt-color-bg);
 }
 
 body {
@@ -12,8 +12,8 @@ body {
 
 .popup-shell {
   display: grid;
-  gap: 14px;
-  padding: 14px;
+  gap: var(--tt-space-4);
+  padding: var(--tt-space-4);
 }
 
 .popup-header {
@@ -30,9 +30,9 @@ h2 {
 }
 
 h2 {
-  margin-bottom: 8px;
+  margin-bottom: var(--tt-space-2);
   font-size: 13px;
-  color: #475569;
+  color: var(--tt-color-text-muted);
 }
 
 .tab-list {
@@ -45,7 +45,7 @@ h2 {
 }
 
 .empty-state {
-  color: #64748b;
+  color: var(--tt-color-text-subtle);
   font-size: 13px;
 }
 
@@ -53,18 +53,19 @@ h2 {
   display: grid;
   width: 100%;
   min-height: 46px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border: 1px solid var(--tt-color-border);
+  border-radius: var(--tt-radius-md);
   padding: 7px 9px;
-  background: #ffffff;
+  background: var(--tt-color-surface);
   color: inherit;
   text-align: left;
   cursor: pointer;
+  transition: border-color var(--tt-motion-fast) ease, background var(--tt-motion-fast) ease;
 }
 
 .tab-row:hover {
-  border-color: #93c5fd;
-  background: #eff6ff;
+  border-color: var(--tt-color-primary);
+  background: var(--tt-color-primary-weak);
 }
 
 .tab-title,
@@ -80,6 +81,6 @@ h2 {
 }
 
 .tab-domain {
-  color: #64748b;
+  color: var(--tt-color-text-subtle);
   font-size: 12px;
 }

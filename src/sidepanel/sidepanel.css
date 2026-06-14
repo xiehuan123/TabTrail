@@ -1,8 +1,8 @@
+@import url("../shared/ui-tokens.css");
+
 :root {
-  color-scheme: light;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #172033;
-  background: #f8fafc;
+  color: var(--tt-color-text);
+  background: var(--tt-color-bg);
 }
 
 body {
@@ -10,15 +10,10 @@ body {
   margin: 0;
 }
 
-button,
-input {
-  font: inherit;
-}
-
 .panel-shell {
   display: grid;
-  gap: 14px;
-  padding: 16px;
+  gap: var(--tt-space-4);
+  padding: var(--tt-space-4);
 }
 
 .panel-header {
@@ -35,57 +30,58 @@ h1 {
 .scope-switch {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  gap: var(--tt-space-2);
 }
 
 .scope-button {
-  min-height: 34px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #334155;
+  min-height: 44px;
+  border: 1px solid var(--tt-color-border-strong);
+  border-radius: var(--tt-radius-md);
+  background: var(--tt-color-surface);
+  color: var(--tt-color-text-muted);
   cursor: pointer;
+  transition: border-color var(--tt-motion-fast) ease, background var(--tt-motion-fast) ease;
 }
 
 .scope-button.is-active {
-  border-color: #2563eb;
-  background: #dbeafe;
-  color: #1d4ed8;
+  border-color: var(--tt-color-primary);
+  background: var(--tt-color-primary-weak);
+  color: var(--tt-color-primary-strong);
 }
 
 .search-field {
   display: grid;
-  gap: 6px;
-  color: #475569;
+  gap: var(--tt-space-2);
+  color: var(--tt-color-text-muted);
   font-size: 13px;
 }
 
 .search-field input {
-  min-height: 36px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
+  min-height: 44px;
+  border: 1px solid var(--tt-color-border-strong);
+  border-radius: var(--tt-radius-md);
   padding: 0 10px;
 }
 
 .category-bar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
+  gap: var(--tt-space-2);
 }
 
 .category-bar input {
-  min-height: 36px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
+  min-height: 44px;
+  border: 1px solid var(--tt-color-border-strong);
+  border-radius: var(--tt-radius-md);
   padding: 0 10px;
 }
 
 .category-bar button {
-  min-height: 36px;
-  border: 1px solid #2563eb;
-  border-radius: 6px;
+  min-height: 44px;
+  border: 1px solid var(--tt-color-primary);
+  border-radius: var(--tt-radius-md);
   padding: 0 10px;
-  background: #2563eb;
+  background: var(--tt-color-primary);
   color: #ffffff;
   cursor: pointer;
 }
@@ -97,24 +93,24 @@ h1 {
 
 .tab-groups {
   display: grid;
-  gap: 10px;
+  gap: var(--tt-space-3);
 }
 
 .empty-state {
-  color: #64748b;
+  color: var(--tt-color-text-subtle);
   font-size: 13px;
 }
 
 .tab-group {
   display: grid;
-  gap: 6px;
-  border-top: 1px solid #e2e8f0;
+  gap: var(--tt-space-2);
+  border-top: 1px solid var(--tt-color-border);
   padding-top: 10px;
 }
 
 .panel-toolbar {
   display: flex;
-  gap: 8px;
+  gap: var(--tt-space-2);
   align-items: center;
   justify-content: flex-end;
 }
@@ -123,28 +119,28 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--tt-space-2);
 }
 
 .tab-group h2 {
   margin: 0;
-  color: #334155;
+  color: var(--tt-color-text-muted);
   font-size: 13px;
   line-height: 1.3;
 }
 
 .text-button {
-  min-height: 28px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #334155;
+  min-height: 44px;
+  border: 1px solid var(--tt-color-border-strong);
+  border-radius: var(--tt-radius-md);
+  background: var(--tt-color-surface);
+  color: var(--tt-color-text-muted);
   cursor: pointer;
 }
 
 .tab-list {
   display: grid;
-  gap: 6px;
+  gap: var(--tt-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -152,14 +148,14 @@ h1 {
 
 .tab-item {
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr) 28px 28px 28px;
+  grid-template-columns: 24px minmax(0, 1fr) 32px 32px 32px;
   align-items: center;
-  gap: 4px;
-  min-height: 42px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  gap: var(--tt-space-1);
+  min-height: 44px;
+  border: 1px solid var(--tt-color-border);
+  border-radius: var(--tt-radius-md);
   padding: 7px 9px;
-  background: #ffffff;
+  background: var(--tt-color-surface);
 }
 
 .tab-item[draggable="true"] {
@@ -167,8 +163,8 @@ h1 {
 }
 
 .tab-select {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   margin: 0;
 }
 
@@ -189,12 +185,12 @@ h1 {
 }
 
 .icon-button {
-  width: 26px;
-  height: 26px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #334155;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--tt-color-border-strong);
+  border-radius: var(--tt-radius-md);
+  background: var(--tt-color-surface);
+  color: var(--tt-color-text-muted);
   cursor: pointer;
 }
 
@@ -217,6 +213,6 @@ h1 {
 }
 
 .tab-domain {
-  color: #64748b;
+  color: var(--tt-color-text-subtle);
   font-size: 12px;
 }
