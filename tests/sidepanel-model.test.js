@@ -5,6 +5,9 @@ import { ACTIVITY_TYPES, STORAGE_KEYS } from "../src/shared/constants.js";
 import { createActivity, toTabSnapshot } from "../src/shared/recent-activity.js";
 import {
   applyPreviewOrderToTabStrip,
+  assignCategoryToTabs,
+  assignManualCategory,
+  activateTabFromPanel,
   buildSidePanelState,
   closeSelectedTabs,
   filterTabs,
@@ -81,6 +84,51 @@ test("builds manual categories from currently open visible tabs only", async () 
   assert.deepEqual(manual.tabs.map((tab) => tab.tabId), [1]);
 });
 
+test("assigns selected open tabs to a manual category", async () => {
+  const sync = createArea({
+    [STORAGE_KEYS.preferences]: {
+      manualCategories: {},
+      pinnedKeys: [],
+      previewOrders: {},
+      defaultScope: "current-window"
+    }
+  });
+  const preferences = (await buildSidePanelState({
+    local: createArea(),
+    sync,
+    tabs,
+    currentWindowId: 10,
+    scope: "current-window"
+  })).preferences;
+
+  await assignCategoryToTabs(sync, preferences, [tabs[0], tabs[1]], "工作");
+
+  assert.deepEqual(sync.state.get(STORAGE_KEYS.preferences).manualCategories, {
+    "tab:1": "工作",
+    "tab:2": "工作"
+  });
+});
+
+test("rejects assigning recently closed records to manual categories", async () => {
+  const sync = createArea({
+    [STORAGE_KEYS.preferences]: {
+      manualCategories: {},
+      pinnedKeys: [],
+      previewOrders: {},
+      defaultScope: "current-window"
+    }
+  });
+
+  await assert.rejects(
+    () => assignManualCategory(sync, sync.state.get(STORAGE_KEYS.preferences), {
+      title: "Closed",
+      url: "https://closed.example",
+      domain: "closed.example"
+    }, "工作"),
+    /Only open tabs can be manually categorized/
+  );
+});
+
 test("builds read-only recently closed system group", async () => {
   const activity = [
     createActivity(ACTIVITY_TYPES.closed, {
@@ -147,9 +195,9 @@ test("applies preview order to the browser tab strip only when requested", async
   await applyPreviewOrderToTabStrip(tabsApi, tabs.slice().reverse());
 
   assert.deepEqual(calls, [
-    [3, { index: 0 }],
-    [2, { index: 1 }],
-    [1, { index: 2 }]
+    [3, { index: 0, windowId: 20 }],
+    [2, { index: 0, windowId: 10 }],
+    [1, { index: 1, windowId: 10 }]
   ]);
 });
 
@@ -210,5 +258,66 @@ test("stores extension pinned state without changing native pinned state", async
 
   assert.deepEqual(sync.state.get(STORAGE_KEYS.preferences).pinnedKeys, [
     "url:https://github.com/acme/issue"
+  ]);
+});
+
+test("prioritizes pinned tabs in side panel visible tabs", async () => {
+  const state = await buildSidePanelState({
+    local: createArea(),
+    sync: createArea({
+      [STORAGE_KEYS.preferences]: {
+        manualCategories: {},
+        pinnedKeys: ["url:https://docs.example.com/guide"],
+        previewOrders: {},
+        defaultScope: "current-window"
+      }
+    }),
+    tabs,
+    currentWindowId: 10,
+    scope: "current-window"
+  });
+
+  assert.deepEqual(state.visibleTabs.map((tab) => tab.tabId), [2, 1]);
+});
+
+test("applies preview order per browser window", async () => {
+  const calls = [];
+  const tabsApi = {
+    async move(tabId, options) {
+      calls.push([tabId, options]);
+    }
+  };
+
+  await applyPreviewOrderToTabStrip(tabsApi, [
+    toTabSnapshot({ id: 3, windowId: 20, title: "Mail", url: "https://mail.example.com/inbox" }),
+    toTabSnapshot({ id: 2, windowId: 10, title: "Docs", url: "https://docs.example.com/guide" }),
+    toTabSnapshot({ id: 1, windowId: 10, title: "GitHub", url: "https://github.com/acme" })
+  ]);
+
+  assert.deepEqual(calls, [
+    [3, { index: 0, windowId: 20 }],
+    [2, { index: 0, windowId: 10 }],
+    [1, { index: 1, windowId: 10 }]
+  ]);
+});
+
+test("activates a tab from side panel", async () => {
+  const calls = [];
+  const tabsApi = {
+    async update(tabId, options) {
+      calls.push(["tabs.update", tabId, options]);
+    }
+  };
+  const windowsApi = {
+    async update(windowId, options) {
+      calls.push(["windows.update", windowId, options]);
+    }
+  };
+
+  await activateTabFromPanel({ tabsApi, windowsApi }, tabs[0]);
+
+  assert.deepEqual(calls, [
+    ["windows.update", 10, { focused: true }],
+    ["tabs.update", 1, { active: true }]
   ]);
 });

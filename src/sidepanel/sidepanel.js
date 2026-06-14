@@ -1,7 +1,9 @@
 import { browserApi } from "../shared/browser-api.js";
 import { toTabSnapshot } from "../shared/recent-activity.js";
 import {
+  activateTabFromPanel,
   applyPreviewOrderToTabStrip,
+  assignCategoryToTabs,
   buildSidePanelState,
   clearRecentlyClosed,
   closeSelectedTabs,
@@ -11,11 +13,14 @@ import {
 
 const groups = document.querySelector("#tab-groups");
 const search = document.querySelector("#tab-search");
+const categoryName = document.querySelector("#category-name");
+const assignCategoryButton = document.querySelector("#assign-category");
 const buttons = [...document.querySelectorAll(".scope-button")];
 let scope = SCOPES.currentWindow;
 let currentWindowId = null;
 let latestState = null;
 let previewTabs = [];
+let draggedTabId = null;
 const selectedTabIds = new Set();
 
 buttons.forEach((button) => {
@@ -28,6 +33,28 @@ buttons.forEach((button) => {
 
 search.addEventListener("input", () => render());
 
+assignCategoryButton.addEventListener("click", async () => {
+  const selected = previewTabs.filter((tab) => selectedTabIds.has(tab.tabId));
+  if (selected.length === 0 || !categoryName.value.trim()) {
+    return;
+  }
+
+  await assignCategoryToTabs(
+    browserApi.storage.sync,
+    latestState.preferences,
+    selected,
+    categoryName.value
+  );
+  selectedTabIds.clear();
+  await render();
+});
+
+function syncActionState() {
+  assignCategoryButton.disabled = selectedTabIds.size === 0 || !categoryName.value.trim();
+}
+
+categoryName.addEventListener("input", syncActionState);
+
 function renderEmpty(text) {
   const empty = document.createElement("p");
   empty.className = "empty-state";
@@ -39,6 +66,31 @@ function createTabRow(tab, index, group) {
   const item = document.createElement("li");
   item.className = "tab-item";
   item.draggable = !group.readOnly;
+  item.dataset.tabId = String(tab.tabId);
+  item.addEventListener("dragstart", (event) => {
+    if (group.readOnly) {
+      event.preventDefault();
+      return;
+    }
+    draggedTabId = tab.tabId;
+    event.dataTransfer.effectAllowed = "move";
+  });
+  item.addEventListener("dragover", (event) => {
+    if (!group.readOnly && draggedTabId !== null) {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+    }
+  });
+  item.addEventListener("drop", (event) => {
+    event.preventDefault();
+    if (group.readOnly || draggedTabId === null) {
+      return;
+    }
+    const targetIndex = previewTabs.findIndex((itemTab) => itemTab.tabId === tab.tabId);
+    previewTabs = reorderPreviewTabs(previewTabs, draggedTabId, targetIndex);
+    draggedTabId = null;
+    renderGroups({ ...latestState, visibleTabs: previewTabs, groups: latestState.groups });
+  });
 
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
@@ -52,6 +104,19 @@ function createTabRow(tab, index, group) {
     } else {
       selectedTabIds.delete(tab.tabId);
     }
+    syncActionState();
+    renderGroups({ ...latestState, visibleTabs: previewTabs, groups: latestState.groups });
+  });
+
+  const openButton = document.createElement("button");
+  openButton.type = "button";
+  openButton.className = "tab-open";
+  openButton.title = "切换到此标签";
+  openButton.addEventListener("click", () => {
+    activateTabFromPanel({
+      tabsApi: browserApi.tabs,
+      windowsApi: browserApi.windows
+    }, tab);
   });
 
   const title = document.createElement("span");
@@ -98,8 +163,9 @@ function createTabRow(tab, index, group) {
   const details = document.createElement("span");
   details.className = "tab-details";
   details.append(title, domain);
+  openButton.append(details);
 
-  item.append(checkbox, details, pinButton, upButton, downButton);
+  item.append(checkbox, openButton, pinButton, upButton, downButton);
   return item;
 }
 
@@ -143,6 +209,7 @@ function renderGroups(state) {
   });
 
   toolbar.append(applyButton, closeButton);
+  syncActionState();
 
   groups.replaceChildren(toolbar, ...visibleGroups.map((group) => {
     const section = document.createElement("section");
@@ -200,6 +267,7 @@ async function render() {
   });
   previewTabs = latestState.visibleTabs;
   renderGroups(latestState);
+  syncActionState();
 }
 
 async function init() {

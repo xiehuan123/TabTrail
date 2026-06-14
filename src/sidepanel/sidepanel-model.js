@@ -35,6 +35,18 @@ export function filterTabs(tabs, query = "") {
   });
 }
 
+export function sortPinnedFirst(tabs, pinnedKeys) {
+  const pins = new Set(pinnedKeys);
+  return [...tabs].sort((a, b) => {
+    const aPinned = pins.has(getPinnedKey(a));
+    const bPinned = pins.has(getPinnedKey(b));
+    if (aPinned === bPinned) {
+      return 0;
+    }
+    return aPinned ? -1 : 1;
+  });
+}
+
 export function groupTabsByDomain(tabs) {
   const byDomain = new Map();
   for (const tab of tabs) {
@@ -106,9 +118,20 @@ export function reorderPreviewTabs(tabs, tabId, targetIndex) {
 }
 
 export async function applyPreviewOrderToTabStrip(tabsApi, orderedTabs) {
-  for (const [index, tab] of orderedTabs.entries()) {
-    await tabsApi.move(tab.tabId, { index });
+  const indexesByWindow = new Map();
+  for (const tab of orderedTabs) {
+    const windowId = tab.windowId;
+    const index = indexesByWindow.get(windowId) ?? 0;
+    indexesByWindow.set(windowId, index + 1);
+    await tabsApi.move(tab.tabId, { index, windowId });
   }
+}
+
+export async function activateTabFromPanel({ tabsApi, windowsApi }, tab) {
+  if (Number.isInteger(tab.windowId)) {
+    await windowsApi.update(tab.windowId, { focused: true });
+  }
+  await tabsApi.update(tab.tabId, { active: true });
 }
 
 export async function closeSelectedTabs({ tabsApi, confirm = async () => true }, tabIds) {
@@ -156,7 +179,7 @@ export async function buildSidePanelState({
 }) {
   const preferences = await readPreferences(sync);
   const selectedTabs = selectTabsByScope(tabs, scope, currentWindowId);
-  const visibleTabs = filterTabs(selectedTabs, query);
+  const visibleTabs = sortPinnedFirst(filterTabs(selectedTabs, query), preferences.pinnedKeys);
   const closedActivities = await getRecentClosedTabs(local);
   const manualGroups = groupManualCategories(visibleTabs, preferences.manualCategories);
   const domainGroups = groupTabsByDomain(visibleTabs);
@@ -175,12 +198,43 @@ export async function buildSidePanelState({
 }
 
 export async function assignManualCategory(syncArea, preferences, tab, category) {
+  if (!Number.isInteger(tab?.tabId)) {
+    throw new Error("Only open tabs can be manually categorized");
+  }
+
+  const normalizedCategory = category.trim();
+  if (!normalizedCategory) {
+    throw new Error("Category name is required");
+  }
+
   const next = {
     ...preferences,
     manualCategories: {
       ...preferences.manualCategories,
-      [getTabKey(tab)]: category
+      [getTabKey(tab)]: normalizedCategory
     }
+  };
+  await syncArea.set({ [STORAGE_KEYS.preferences]: next });
+  return next;
+}
+
+export async function assignCategoryToTabs(syncArea, preferences, tabs, category) {
+  const normalizedCategory = category.trim();
+  if (!normalizedCategory) {
+    throw new Error("Category name is required");
+  }
+
+  const nextManualCategories = { ...preferences.manualCategories };
+  for (const tab of tabs) {
+    if (!Number.isInteger(tab?.tabId)) {
+      throw new Error("Only open tabs can be manually categorized");
+    }
+    nextManualCategories[getTabKey(tab)] = normalizedCategory;
+  }
+
+  const next = {
+    ...preferences,
+    manualCategories: nextManualCategories
   };
   await syncArea.set({ [STORAGE_KEYS.preferences]: next });
   return next;
