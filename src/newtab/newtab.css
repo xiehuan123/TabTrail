@@ -189,6 +189,16 @@ h2 {
   border-style: dashed;
 }
 
+.category-button.can-drop {
+  border-color: var(--tt-color-border-strong);
+}
+
+.category-button.is-drop-target {
+  border-color: var(--tt-color-success);
+  background: var(--tt-color-success-weak);
+  box-shadow: var(--tt-focus-ring);
+}
+
 .category-title {
   overflow: hidden;
   color: var(--tt-color-text);
@@ -342,6 +352,14 @@ h2 {
 .tab-row {
   grid-template-columns: 22px minmax(0, 1fr);
   align-items: center;
+}
+
+.tab-row[draggable="true"] {
+  cursor: grab;
+}
+
+.tab-row[draggable="true"]:active {
+  cursor: grabbing;
 }
 
 @media (max-width: 1023px) {

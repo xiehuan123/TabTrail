@@ -2,11 +2,13 @@ import { browserApi } from "../shared/browser-api.js";
 import { toTabSnapshot } from "../shared/recent-activity.js";
 import {
   activateTabFromDashboard,
+  assignDashboardTabToCategory,
   buildNewTabDashboardState,
   reopenClosedFromDashboard
 } from "./newtab-model.js";
 import {
   applyPreviewOrderToTabStrip,
+  assignCategoryToTabs,
   closeSelectedTabs,
   reorderPreviewTabs,
   SCOPES
@@ -33,6 +35,7 @@ let currentWindowId = null;
 let latestState = null;
 let previewTabs = [];
 let selectedCategoryId = "all";
+let draggedTabId = null;
 const selectedTabIds = new Set();
 
 function renderEmpty(container, text) {
@@ -88,6 +91,20 @@ function renderSummary(state) {
 function createTabRow(tab, group) {
   const item = document.createElement("li");
   item.className = "tab-row";
+  item.draggable = !group.readOnly;
+  item.dataset.tabId = String(tab.tabId);
+  item.addEventListener("dragstart", (event) => {
+    if (group.readOnly) {
+      event.preventDefault();
+      return;
+    }
+    draggedTabId = tab.tabId;
+    event.dataTransfer.effectAllowed = "move";
+  });
+  item.addEventListener("dragend", () => {
+    draggedTabId = null;
+    clearDropTargets();
+  });
 
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
@@ -161,8 +178,14 @@ function renderCategories(state) {
     button.className = "category-button";
     button.dataset.categoryId = category.id;
     button.dataset.kind = category.kind;
+    button.dataset.canReceiveDrop = category.canReceiveDrop ? "true" : "false";
     if (category.readOnly) {
       button.dataset.readOnly = "true";
+    }
+    if (category.canReceiveDrop) {
+      button.classList.add("can-drop");
+    } else {
+      button.setAttribute("aria-disabled", "true");
     }
     button.classList.toggle("is-active", category.id === state.selectedCategoryId);
     button.setAttribute("role", "tab");
@@ -181,8 +204,57 @@ function renderCategories(state) {
       selectedCategoryId = category.id;
       render();
     });
+    button.addEventListener("dragenter", (event) => {
+      if (!canDropOnCategory(button)) {
+        return;
+      }
+      event.preventDefault();
+      button.classList.add("is-drop-target");
+    });
+    button.addEventListener("dragover", (event) => {
+      if (!canDropOnCategory(button)) {
+        return;
+      }
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      button.classList.add("is-drop-target");
+    });
+    button.addEventListener("dragleave", () => {
+      button.classList.remove("is-drop-target");
+    });
+    button.addEventListener("drop", async (event) => {
+      event.preventDefault();
+      button.classList.remove("is-drop-target");
+      if (!canDropOnCategory(button)) {
+        return;
+      }
+      const tab = previewTabs.find((item) => item.tabId === draggedTabId);
+      if (!tab) {
+        return;
+      }
+      await assignDashboardTabToCategory(
+        browserApi.storage.sync,
+        latestState.preferences,
+        tab,
+        category.id
+      );
+      selectedCategoryId = category.id;
+      draggedTabId = null;
+      message.textContent = `已归类到 ${category.title}`;
+      await render();
+    });
     return button;
   }));
+}
+
+function canDropOnCategory(button) {
+  return draggedTabId !== null && button.dataset.canReceiveDrop === "true";
+}
+
+function clearDropTargets() {
+  categoryGrid.querySelectorAll(".is-drop-target").forEach((button) => {
+    button.classList.remove("is-drop-target");
+  });
 }
 
 function renderCurrentCategory(state) {
@@ -250,6 +322,28 @@ scopeButtons.forEach((button) => {
 search.addEventListener("input", () => render());
 
 categoryName.addEventListener("input", () => renderActionState());
+
+assignCategoryButton.addEventListener("click", async () => {
+  const selected = previewTabs.filter((tab) => selectedTabIds.has(tab.tabId));
+  const name = categoryName.value.trim();
+  if (selected.length === 0) {
+    message.textContent = "请先选择要归类的标签";
+    renderActionState();
+    return;
+  }
+  if (!name) {
+    message.textContent = "请输入分类名";
+    renderActionState();
+    return;
+  }
+
+  await assignCategoryToTabs(browserApi.storage.sync, latestState.preferences, selected, name);
+  selectedTabIds.clear();
+  categoryName.value = "";
+  selectedCategoryId = `manual:${name}`;
+  message.textContent = `已归类到 ${name}`;
+  await render();
+});
 
 applyOrderButton.addEventListener("click", async () => {
   await applyPreviewOrderToTabStrip(browserApi.tabs, previewTabs);

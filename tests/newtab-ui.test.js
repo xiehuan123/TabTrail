@@ -38,3 +38,27 @@ test("new tab dashboard exposes focus mode guidance", async () => {
   assert.match(html, /不能直接隐藏浏览器原生顶部标签栏/);
   assert.match(html, /关闭后可从最近关闭重新打开/);
 });
+
+test("new tab dashboard wires category assignment and drag targets", async () => {
+  const js = await readFile("src/newtab/newtab.js", "utf8");
+  const css = await readFile("src/newtab/newtab.css", "utf8");
+
+  for (const pattern of [
+    /assignCategoryToTabs/,
+    /assignDashboardTabToCategory/,
+    /addEventListener\("click", async \(\) =>/,
+    /addEventListener\("dragstart"/,
+    /addEventListener\("dragover"/,
+    /addEventListener\("drop"/,
+    /addEventListener\("dragenter"/,
+    /addEventListener\("dragleave"/,
+    /dataset\.canReceiveDrop/,
+    /aria-disabled/
+  ]) {
+    assert.match(js, pattern);
+  }
+
+  assert.match(css, /\.category-button\.can-drop/);
+  assert.match(css, /\.category-button\.is-drop-target/);
+  assert.match(css, /\.tab-row\[draggable="true"\]/);
+});
