@@ -28,5 +28,19 @@ assert.equal(manifest.manifest_version, 3);
 assert.equal(manifest.background.type, "module");
 assert.equal(manifest.action.default_popup, "src/popup/popup.html");
 assert.equal(manifest.side_panel.default_path, "src/sidepanel/sidepanel.html");
+assert.deepEqual(
+  new Set(manifest.permissions),
+  new Set(["tabs", "storage", "sidePanel"])
+);
+
+const sourceFiles = await Promise.all(
+  requiredFiles
+    .filter((file) => file.endsWith(".js") || file.endsWith(".json"))
+    .map((file) => readFile(file, "utf8"))
+);
+const source = sourceFiles.join("\n");
+assert.equal(source.includes("fetch("), false, "MVP must not upload browsing data");
+assert.equal(source.includes("XMLHttpRequest"), false, "MVP must not upload browsing data");
+assert.equal(source.includes("document.body.innerText"), false, "MVP must not read page body text");
 
 console.log("Project structure check passed.");
