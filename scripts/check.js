@@ -4,6 +4,7 @@ import { access, readFile } from "node:fs/promises";
 const requiredFiles = [
   "manifest.json",
   "src/background/service-worker.js",
+  "src/background/tab-events.js",
   "src/shared/browser-api.js",
   "src/shared/constants.js",
   "src/shared/preferences.js",
@@ -30,7 +31,7 @@ assert.equal(manifest.action.default_popup, "src/popup/popup.html");
 assert.equal(manifest.side_panel.default_path, "src/sidepanel/sidepanel.html");
 assert.deepEqual(
   new Set(manifest.permissions),
-  new Set(["tabs", "storage", "sidePanel"])
+  new Set(["tabs", "storage", "sidePanel", "sessions"])
 );
 
 const sourceFiles = await Promise.all(

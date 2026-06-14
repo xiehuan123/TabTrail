@@ -8,6 +8,7 @@ import {
   clearRecentlyClosed,
   closeSelectedTabs,
   reorderPreviewTabs,
+  reopenRecentlyClosedFromPanel,
   SCOPES
 } from "./sidepanel-model.js";
 
@@ -111,9 +112,13 @@ function createTabRow(tab, index, group) {
   const openButton = document.createElement("button");
   openButton.type = "button";
   openButton.className = "tab-open";
-  openButton.title = "切换到此标签";
-  openButton.addEventListener("click", () => {
-    activateTabFromPanel({
+  openButton.title = group.readOnly ? "重新打开此标签" : "切换到此标签";
+  openButton.addEventListener("click", async () => {
+    if (group.id === "system:recently-closed") {
+      await reopenRecentlyClosedFromPanel({ tabsApi: browserApi.tabs }, tab);
+      return;
+    }
+    await activateTabFromPanel({
       tabsApi: browserApi.tabs,
       windowsApi: browserApi.windows
     }, tab);

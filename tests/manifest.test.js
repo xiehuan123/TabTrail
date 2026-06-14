@@ -15,6 +15,6 @@ test("manifest declares the MV3 extension entry points", async () => {
   assert.equal(manifest.side_panel.default_path, "src/sidepanel/sidepanel.html");
   assert.deepEqual(
     new Set(manifest.permissions),
-    new Set(["tabs", "storage", "sidePanel"])
+    new Set(["tabs", "storage", "sidePanel", "sessions"])
   );
 });

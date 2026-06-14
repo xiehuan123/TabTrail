@@ -134,6 +134,10 @@ export async function activateTabFromPanel({ tabsApi, windowsApi }, tab) {
   await tabsApi.update(tab.tabId, { active: true });
 }
 
+export async function reopenRecentlyClosedFromPanel({ tabsApi }, tab) {
+  await tabsApi.create({ url: tab.url });
+}
+
 export async function closeSelectedTabs({ tabsApi, confirm = async () => true }, tabIds) {
   const count = tabIds.length;
   if (count === 0) {

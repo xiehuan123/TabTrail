@@ -13,6 +13,7 @@ import {
   filterTabs,
   groupTabsByDomain,
   reorderPreviewTabs,
+  reopenRecentlyClosedFromPanel,
   selectTabsByScope
 } from "../src/sidepanel/sidepanel-model.js";
 
@@ -320,4 +321,20 @@ test("activates a tab from side panel", async () => {
     ["windows.update", 10, { focused: true }],
     ["tabs.update", 1, { active: true }]
   ]);
+});
+
+test("reopens a recently closed tab from side panel", async () => {
+  const calls = [];
+  const tabsApi = {
+    async create(options) {
+      calls.push(options);
+    }
+  };
+
+  await reopenRecentlyClosedFromPanel({ tabsApi }, {
+    title: "Closed",
+    url: "https://closed.example/page"
+  });
+
+  assert.deepEqual(calls, [{ url: "https://closed.example/page" }]);
 });

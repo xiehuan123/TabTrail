@@ -1,6 +1,7 @@
 import { browserApi } from "../shared/browser-api.js";
 import { ACTIVITY_TYPES } from "../shared/constants.js";
 import { recordTabActivity } from "../shared/recent-activity.js";
+import { handleTabRemoved } from "./tab-events.js";
 
 browserApi.runtime.onInstalled.addListener(() => {
   if (browserApi.sidePanel?.setPanelBehavior) {
@@ -35,7 +36,10 @@ browserApi.tabs.onActivated.addListener(async ({ tabId }) => {
 });
 
 browserApi.tabs.onRemoved.addListener(async (tabId) => {
-  const tab = tabCache.get(tabId);
-  tabCache.delete(tabId);
-  await recordTabActivity(browserApi.storage.local, ACTIVITY_TYPES.closed, tab);
+  await handleTabRemoved({
+    tabId,
+    tabCache,
+    localArea: browserApi.storage.local,
+    sessionsApi: browserApi.sessions
+  });
 });
