@@ -1,6 +1,11 @@
 import { LIMITS, STORAGE_KEYS } from "../shared/constants.js";
 import { readPreferences } from "../shared/preferences.js";
-import { clearClosedActivities, getRecentClosedTabs } from "../shared/recent-activity.js";
+import {
+  clearClosedActivities,
+  getRecentActiveTabs,
+  getRecentClosedTabs
+} from "../shared/recent-activity.js";
+import { formatRelativeTime, getFullTimeText } from "../shared/time-format.js";
 import { getPinnedKey } from "../popup/popup-model.js";
 
 export const SCOPES = Object.freeze({
@@ -94,13 +99,54 @@ export function groupManualCategories(tabs, manualCategories) {
     }));
 }
 
-export function createRecentlyClosedGroup(closedActivities) {
+function withTimeContext(activity, now) {
+  return {
+    ...activity,
+    timeText: formatRelativeTime(activity.timestamp, now),
+    fullTimeText: getFullTimeText(activity.timestamp),
+    tab: {
+      ...activity.tab,
+      timeText: formatRelativeTime(activity.timestamp, now),
+      fullTimeText: getFullTimeText(activity.timestamp)
+    }
+  };
+}
+
+function getScopeLabel(scope) {
+  return scope === SCOPES.allWindows ? "全部窗口" : "当前窗口";
+}
+
+function getEmptyState({ selectedTabs, visibleTabs, query }) {
+  if (selectedTabs.length === 0) {
+    return {
+      reason: "no-tabs",
+      title: "当前范围没有可整理标签",
+      description: "打开一些网页后，它们会出现在这里。"
+    };
+  }
+  if (visibleTabs.length === 0 && query.trim()) {
+    return {
+      reason: "no-search-results",
+      title: "没有匹配的标签",
+      description: "换一个关键词，或清空搜索查看全部标签。",
+      actionLabel: "清空搜索"
+    };
+  }
+  return {
+    reason: null,
+    title: "",
+    description: ""
+  };
+}
+
+export function createRecentlyClosedGroup(closedActivities, now = Date.now()) {
+  const closedWithTime = closedActivities.map((activity) => withTimeContext(activity, now));
   return {
     id: "system:recently-closed",
     title: "最近关闭",
     kind: "system",
     readOnly: true,
-    tabs: closedActivities.map((activity) => activity.tab)
+    tabs: closedWithTime.map((activity) => activity.tab)
   };
 }
 
@@ -179,21 +225,39 @@ export async function buildSidePanelState({
   tabs,
   currentWindowId,
   scope = SCOPES.currentWindow,
-  query = ""
+  query = "",
+  now = Date.now()
 }) {
   const preferences = await readPreferences(sync);
   const selectedTabs = selectTabsByScope(tabs, scope, currentWindowId);
   const visibleTabs = sortPinnedFirst(filterTabs(selectedTabs, query), preferences.pinnedKeys);
+  const recentActive = (await getRecentActiveTabs(local, selectedTabs, LIMITS.popupRecentActive))
+    .map((activity) => withTimeContext(activity, now));
   const closedActivities = await getRecentClosedTabs(local);
+  const recentClosed = closedActivities.map((activity) => withTimeContext(activity, now));
   const manualGroups = groupManualCategories(visibleTabs, preferences.manualCategories);
   const domainGroups = groupTabsByDomain(visibleTabs);
-  const recentlyClosed = createRecentlyClosedGroup(closedActivities);
+  const recentlyClosed = createRecentlyClosedGroup(closedActivities, now);
+  const emptyState = getEmptyState({ selectedTabs, visibleTabs, query });
 
   return {
     scope,
     query,
     visibleTabs,
     groups: [...manualGroups, ...domainGroups, recentlyClosed],
+    recentActive,
+    recentClosed,
+    summary: {
+      scopeLabel: getScopeLabel(scope),
+      openTabCount: selectedTabs.length,
+      visibleTabCount: visibleTabs.length,
+      selectedScope: scope,
+      recentActiveCount: recentActive.length,
+      recentClosedCount: recentClosed.length,
+      query,
+      emptyReason: emptyState.reason
+    },
+    emptyState,
     preferences,
     actions: {
       togglePinned: (tab) => togglePinnedPreference(sync, preferences, tab)

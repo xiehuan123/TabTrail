@@ -131,10 +131,11 @@ test("rejects assigning recently closed records to manual categories", async () 
 });
 
 test("builds read-only recently closed system group", async () => {
+  const now = new Date(2026, 5, 14, 18, 36, 30).getTime();
   const activity = [
     createActivity(ACTIVITY_TYPES.closed, {
       tab: { id: 4, windowId: 10, title: "Closed", url: "https://closed.example" },
-      timestamp: 4
+      timestamp: now
     })
   ];
 
@@ -143,12 +144,77 @@ test("builds read-only recently closed system group", async () => {
     sync: createArea(),
     tabs,
     currentWindowId: 10,
-    scope: "current-window"
+    scope: "current-window",
+    now
   });
 
   const closed = state.groups.find((group) => group.id === "system:recently-closed");
   assert.equal(closed.readOnly, true);
   assert.deepEqual(closed.tabs.map((tab) => tab.title), ["Closed"]);
+  assert.equal(closed.tabs[0].timeText, "刚刚");
+  assert.equal(state.recentClosed[0].timeText, "刚刚");
+  assert.equal(state.summary.recentClosedCount, 1);
+});
+
+test("builds side panel workbench summary and recent active time context", async () => {
+  const now = new Date(2026, 5, 14, 18, 36, 30).getTime();
+  const activity = [
+    createActivity(ACTIVITY_TYPES.activated, {
+      tab: { id: 2, windowId: 10, title: "Docs", url: "https://docs.example.com/guide" },
+      timestamp: now - 5 * 60_000
+    }),
+    createActivity(ACTIVITY_TYPES.closed, {
+      tab: { id: 4, windowId: 10, title: "Closed", url: "https://closed.example" },
+      timestamp: now - 24 * 60 * 60_000
+    })
+  ];
+
+  const state = await buildSidePanelState({
+    local: createArea({ [STORAGE_KEYS.activity]: activity }),
+    sync: createArea(),
+    tabs,
+    currentWindowId: 10,
+    scope: "current-window",
+    query: "docs",
+    now
+  });
+
+  assert.deepEqual(state.summary, {
+    scopeLabel: "当前窗口",
+    openTabCount: 2,
+    visibleTabCount: 1,
+    selectedScope: "current-window",
+    recentActiveCount: 1,
+    recentClosedCount: 1,
+    query: "docs",
+    emptyReason: null
+  });
+  assert.deepEqual(state.recentActive.map((item) => item.tab.title), ["Docs"]);
+  assert.equal(state.recentActive[0].timeText, "5 分钟前");
+  assert.equal(state.recentClosed[0].timeText, "昨天 18:36");
+});
+
+test("describes side panel empty states", async () => {
+  const noTabsState = await buildSidePanelState({
+    local: createArea(),
+    sync: createArea(),
+    tabs: [],
+    currentWindowId: 10,
+    scope: "current-window"
+  });
+  const noSearchResultsState = await buildSidePanelState({
+    local: createArea(),
+    sync: createArea(),
+    tabs,
+    currentWindowId: 10,
+    scope: "current-window",
+    query: "missing"
+  });
+
+  assert.equal(noTabsState.summary.emptyReason, "no-tabs");
+  assert.equal(noTabsState.emptyState.title, "当前范围没有可整理标签");
+  assert.equal(noSearchResultsState.summary.emptyReason, "no-search-results");
+  assert.equal(noSearchResultsState.emptyState.actionLabel, "清空搜索");
 });
 
 test("searches only within the selected scope", async () => {

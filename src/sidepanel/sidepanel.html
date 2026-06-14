@@ -7,22 +7,52 @@
     <link rel="stylesheet" href="./sidepanel.css">
   </head>
   <body>
-    <main class="panel-shell">
+    <main class="panel-shell panel-workbench">
       <header class="panel-header">
-        <h1>TabTrail</h1>
+        <div>
+          <p class="eyebrow">标签工作台</p>
+          <h1>TabTrail</h1>
+        </div>
+        <section id="panel-status" class="status-grid" aria-label="整理状态">
+          <div class="status-item">
+            <span class="status-value" id="summary-open-tabs">0</span>
+            <span class="status-label">当前范围</span>
+          </div>
+          <div class="status-item">
+            <span class="status-value" id="summary-visible-tabs">0</span>
+            <span class="status-label">可见标签</span>
+          </div>
+          <div class="status-item">
+            <span class="status-value" id="summary-recent-closed">0</span>
+            <span class="status-label">最近关闭</span>
+          </div>
+        </section>
+      </header>
+      <section id="panel-tools" class="tool-panel" aria-label="整理工具">
         <div class="scope-switch" role="tablist" aria-label="标签范围">
           <button type="button" class="scope-button is-active" data-scope="current-window">当前窗口</button>
           <button type="button" class="scope-button" data-scope="all-windows">全部窗口</button>
         </div>
-      </header>
-      <label class="search-field">
-        <span>搜索</span>
-        <input id="tab-search" type="search" placeholder="标题、URL、域名">
-      </label>
-      <div class="category-bar" aria-label="手动分类">
-        <input id="category-name" type="text" placeholder="分类名，例如 工作">
-        <button id="assign-category" type="button">归类已选</button>
-      </div>
+        <label class="search-field">
+          <span>搜索</span>
+          <input id="tab-search" type="search" placeholder="标题、URL、域名">
+        </label>
+        <div class="category-bar" aria-label="手动分类">
+          <input id="category-name" type="text" placeholder="分类名，例如 工作">
+          <button id="assign-category" type="button">归类已选</button>
+        </div>
+      </section>
+      <section class="recent-grid" aria-label="最近记录">
+        <section id="recent-active-panel" class="recent-panel" aria-labelledby="recent-active-title">
+          <h2 id="recent-active-title">最近活跃</h2>
+          <ul id="recent-active-list" class="compact-list"></ul>
+        </section>
+        <section id="recent-closed-panel" class="recent-panel" aria-labelledby="recent-closed-title">
+          <h2 id="recent-closed-title">最近关闭</h2>
+          <ul id="recent-closed-list" class="compact-list"></ul>
+        </section>
+      </section>
+      <section id="panel-actions" class="panel-actions" aria-label="批量操作"></section>
       <section id="tab-groups" class="tab-groups" aria-live="polite"></section>
     </main>
     <script type="module" src="./sidepanel.js"></script>

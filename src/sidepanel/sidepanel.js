@@ -13,6 +13,12 @@ import {
 } from "./sidepanel-model.js";
 
 const groups = document.querySelector("#tab-groups");
+const actions = document.querySelector("#panel-actions");
+const recentActiveList = document.querySelector("#recent-active-list");
+const recentClosedList = document.querySelector("#recent-closed-list");
+const summaryOpenTabs = document.querySelector("#summary-open-tabs");
+const summaryVisibleTabs = document.querySelector("#summary-visible-tabs");
+const summaryRecentClosed = document.querySelector("#summary-recent-closed");
 const search = document.querySelector("#tab-search");
 const categoryName = document.querySelector("#category-name");
 const assignCategoryButton = document.querySelector("#assign-category");
@@ -60,6 +66,33 @@ function renderEmpty(text) {
   const empty = document.createElement("p");
   empty.className = "empty-state";
   empty.textContent = text;
+  groups.replaceChildren(empty);
+}
+
+function renderStructuredEmpty(emptyState) {
+  const empty = document.createElement("div");
+  empty.className = "empty-state empty-state-panel";
+
+  const title = document.createElement("strong");
+  title.textContent = emptyState.title;
+
+  const description = document.createElement("span");
+  description.textContent = emptyState.description;
+
+  empty.append(title, description);
+
+  if (emptyState.actionLabel) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "text-button";
+    button.textContent = emptyState.actionLabel;
+    button.addEventListener("click", () => {
+      search.value = "";
+      render();
+    });
+    empty.append(button);
+  }
+
   groups.replaceChildren(empty);
 }
 
@@ -132,6 +165,13 @@ function createTabRow(tab, index, group) {
   domain.className = "tab-domain";
   domain.textContent = tab.domain || tab.url;
 
+  const time = document.createElement("span");
+  time.className = "tab-time";
+  time.textContent = tab.timeText || "";
+  if (tab.fullTimeText) {
+    time.title = tab.fullTimeText;
+  }
+
   const pinButton = document.createElement("button");
   pinButton.type = "button";
   pinButton.className = "icon-button";
@@ -168,6 +208,9 @@ function createTabRow(tab, index, group) {
   const details = document.createElement("span");
   details.className = "tab-details";
   details.append(title, domain);
+  if (time.textContent) {
+    details.append(time);
+  }
   openButton.append(details);
 
   item.append(checkbox, openButton, pinButton, upButton, downButton);
@@ -179,13 +222,16 @@ function renderGroups(state) {
     return group.tabs.length > 0 || group.id === "system:recently-closed";
   });
 
+  if (state.emptyState.reason) {
+    actions.replaceChildren();
+    renderStructuredEmpty(state.emptyState);
+    return;
+  }
   if (visibleGroups.length === 0) {
+    actions.replaceChildren();
     renderEmpty("没有匹配的标签");
     return;
   }
-
-  const toolbar = document.createElement("div");
-  toolbar.className = "panel-toolbar";
 
   const applyButton = document.createElement("button");
   applyButton.type = "button";
@@ -213,10 +259,10 @@ function renderGroups(state) {
     }
   });
 
-  toolbar.append(applyButton, closeButton);
+  actions.replaceChildren(applyButton, closeButton);
   syncActionState();
 
-  groups.replaceChildren(toolbar, ...visibleGroups.map((group) => {
+  groups.replaceChildren(...visibleGroups.map((group) => {
     const section = document.createElement("section");
     section.className = `tab-group tab-group-${group.kind}`;
     section.dataset.groupId = group.id;
@@ -255,6 +301,65 @@ function renderGroups(state) {
   }));
 }
 
+function renderSummary(summary) {
+  summaryOpenTabs.textContent = String(summary.openTabCount);
+  summaryVisibleTabs.textContent = String(summary.visibleTabCount);
+  summaryRecentClosed.textContent = String(summary.recentClosedCount);
+  summaryOpenTabs.title = summary.scopeLabel;
+}
+
+function renderCompactList(list, items, emptyText, onClick) {
+  if (items.length === 0) {
+    const empty = document.createElement("li");
+    empty.className = "empty-state";
+    empty.textContent = emptyText;
+    list.replaceChildren(empty);
+    return;
+  }
+
+  list.replaceChildren(...items.slice(0, 4).map((item) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "compact-row";
+    button.addEventListener("click", () => onClick(item.tab));
+
+    const title = document.createElement("span");
+    title.className = "tab-title";
+    title.textContent = item.tab.title;
+
+    const meta = document.createElement("span");
+    meta.className = "compact-meta";
+
+    const domain = document.createElement("span");
+    domain.className = "tab-domain";
+    domain.textContent = item.tab.domain || item.tab.url;
+
+    const time = document.createElement("span");
+    time.className = "tab-time";
+    time.textContent = item.timeText;
+    time.title = item.fullTimeText;
+
+    meta.append(domain, time);
+    button.append(title, meta);
+
+    const listItem = document.createElement("li");
+    listItem.append(button);
+    return listItem;
+  }));
+}
+
+function renderRecentPanels(state) {
+  renderCompactList(recentActiveList, state.recentActive, "还没有最近活跃标签", (tab) => {
+    activateTabFromPanel({
+      tabsApi: browserApi.tabs,
+      windowsApi: browserApi.windows
+    }, tab);
+  });
+  renderCompactList(recentClosedList, state.recentClosed, "最近关闭为空", (tab) => {
+    reopenRecentlyClosedFromPanel({ tabsApi: browserApi.tabs }, tab);
+  });
+}
+
 async function getOpenTabs() {
   const tabs = await browserApi.tabs.query({});
   return tabs.map(toTabSnapshot);
@@ -271,6 +376,8 @@ async function render() {
     query: search.value
   });
   previewTabs = latestState.visibleTabs;
+  renderSummary(latestState.summary);
+  renderRecentPanels(latestState);
   renderGroups(latestState);
   syncActionState();
 }
