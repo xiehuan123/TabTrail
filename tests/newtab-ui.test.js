@@ -62,3 +62,17 @@ test("new tab dashboard wires category assignment and drag targets", async () =>
   assert.match(css, /\.category-button\.is-drop-target/);
   assert.match(css, /\.tab-row\[draggable="true"\]/);
 });
+
+test("new tab dashboard wires close current category action", async () => {
+  const html = await readFile("src/newtab/newtab.html", "utf8");
+  const js = await readFile("src/newtab/newtab.js", "utf8");
+  const css = await readFile("src/newtab/newtab.css", "utf8");
+
+  assert.match(html, /id="dashboard-close-category"/);
+  assert.match(js, /closeDashboardCategory/);
+  assert.match(js, /closeCategoryButton\.hidden = !category\.canClose/);
+  assert.match(js, /确定关闭分类「\$\{categoryTitle\}」中的 \$\{count\} 个标签/);
+  assert.match(js, /category\.id === "all"/);
+  assert.match(js, /category\.readOnly/);
+  assert.match(css, /\.close-category-action/);
+});

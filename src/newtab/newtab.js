@@ -4,6 +4,7 @@ import {
   activateTabFromDashboard,
   assignDashboardTabToCategory,
   buildNewTabDashboardState,
+  closeDashboardCategory,
   reopenClosedFromDashboard
 } from "./newtab-model.js";
 import {
@@ -27,6 +28,7 @@ const openCount = document.querySelector("#dashboard-open-count");
 const visibleCount = document.querySelector("#dashboard-visible-count");
 const closedCount = document.querySelector("#dashboard-closed-count");
 const applyOrderButton = document.querySelector("#dashboard-apply-order");
+const closeCategoryButton = document.querySelector("#dashboard-close-category");
 const closeSelectedButton = document.querySelector("#dashboard-close-selected");
 const message = document.querySelector("#dashboard-message");
 
@@ -275,10 +277,14 @@ function renderCurrentCategory(state) {
 }
 
 function renderActionState() {
+  const category = latestState?.currentCategory || { id: "all", readOnly: false, canClose: false };
   closeSelectedButton.textContent = `关闭已选 (${selectedTabIds.size})`;
   closeSelectedButton.disabled = selectedTabIds.size === 0;
   applyOrderButton.disabled = previewTabs.length === 0;
   assignCategoryButton.disabled = selectedTabIds.size === 0 || !categoryName.value.trim();
+  closeCategoryButton.hidden = !category.canClose;
+  closeCategoryButton.disabled = category.id === "all" || category.readOnly || !category.canClose;
+  closeCategoryButton.textContent = category.canClose ? `关闭分类 (${category.count})` : "关闭分类";
 }
 
 async function getOpenTabs() {
@@ -358,6 +364,25 @@ closeSelectedButton.addEventListener("click", async () => {
   }, selected);
   if (result.closed) {
     selectedTabIds.clear();
+    await render();
+  }
+});
+
+closeCategoryButton.addEventListener("click", async () => {
+  const category = latestState.currentCategory;
+  if (category.id === "all" || category.readOnly || !category.canClose) {
+    return;
+  }
+  const result = await closeDashboardCategory({
+    tabsApi: browserApi.tabs,
+    confirm: async ({ categoryTitle, count }) => {
+      return globalThis.confirm(`确定关闭分类「${categoryTitle}」中的 ${count} 个标签？`);
+    }
+  }, category);
+  if (result.closed) {
+    selectedTabIds.clear();
+    selectedCategoryId = "all";
+    message.textContent = `已关闭分类「${category.title}」中的 ${result.count} 个标签`;
     await render();
   }
 });
