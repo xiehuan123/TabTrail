@@ -48,12 +48,12 @@
 
 ## 6. UI/UX Pro Max 验收
 
-- [ ] 6.1 检查 popup、side panel、新标签页的视觉层级、主要操作、空状态、错误状态和确认状态
-- [ ] 6.2 检查主要控件触控区域、键盘 Tab 顺序、焦点态、aria-label 和禁用/加载反馈
-- [ ] 6.3 检查正文对比度、危险/成功/警告状态是否不只依赖颜色
-- [ ] 6.4 检查 popup 默认尺寸、side panel 窄宽度、新标签页 768px/1024px/1440px 断点，无横向滚动、文字重叠或控件遮挡
-- [ ] 6.5 检查动效时长和 `prefers-reduced-motion` 降级
-- [ ] 6.6 完成 UI/UX Pro Max 验收修正后提交 git commit
+- [x] 6.1 检查 popup、side panel、新标签页的视觉层级、主要操作、空状态、错误状态和确认状态
+- [x] 6.2 检查主要控件触控区域、键盘 Tab 顺序、焦点态、aria-label 和禁用/加载反馈
+- [x] 6.3 检查正文对比度、危险/成功/警告状态是否不只依赖颜色
+- [x] 6.4 检查 popup 默认尺寸、side panel 窄宽度、新标签页 768px/1024px/1440px 断点，无横向滚动、文字重叠或控件遮挡
+- [x] 6.5 检查动效时长和 `prefers-reduced-motion` 降级
+- [x] 6.6 完成 UI/UX Pro Max 验收修正后提交 git commit
 
 ## 7. 构建与浏览器验证
 
