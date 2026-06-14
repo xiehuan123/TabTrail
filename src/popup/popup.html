@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TabTrail</title>
+    <link rel="stylesheet" href="./popup.css">
+  </head>
+  <body>
+    <main class="popup-shell">
+      <header class="popup-header">
+        <h1>TabTrail</h1>
+      </header>
+      <section aria-labelledby="recent-active-title">
+        <h2 id="recent-active-title">最近活跃</h2>
+        <ul id="recent-active-list" class="tab-list"></ul>
+      </section>
+      <section aria-labelledby="recent-closed-title">
+        <h2 id="recent-closed-title">最近关闭</h2>
+        <ul id="recent-closed-list" class="tab-list"></ul>
+      </section>
+    </main>
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>

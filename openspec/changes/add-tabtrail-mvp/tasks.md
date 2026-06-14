@@ -1,9 +1,9 @@
 ## 1. 项目骨架
 
-- [ ] 1.1 初始化 Chromium Manifest V3 插件项目结构
-- [ ] 1.2 配置 manifest 权限、popup 入口、side panel 入口和后台 service worker
-- [ ] 1.3 建立共享类型、存储键名和浏览器 API 适配层
-- [ ] 1.4 建立基础构建、开发、测试和代码检查命令
+- [x] 1.1 初始化 Chromium Manifest V3 插件项目结构
+- [x] 1.2 配置 manifest 权限、popup 入口、side panel 入口和后台 service worker
+- [x] 1.3 建立共享类型、存储键名和浏览器 API 适配层
+- [x] 1.4 建立基础构建、开发、测试和代码检查命令
 
 ## 2. 最近标签活动
 

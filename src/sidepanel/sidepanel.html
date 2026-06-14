@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TabTrail 侧边栏</title>
+    <link rel="stylesheet" href="./sidepanel.css">
+  </head>
+  <body>
+    <main class="panel-shell">
+      <header class="panel-header">
+        <h1>TabTrail</h1>
+        <div class="scope-switch" role="tablist" aria-label="标签范围">
+          <button type="button" class="scope-button is-active" data-scope="current-window">当前窗口</button>
+          <button type="button" class="scope-button" data-scope="all-windows">全部窗口</button>
+        </div>
+      </header>
+      <label class="search-field">
+        <span>搜索</span>
+        <input id="tab-search" type="search" placeholder="标题、URL、域名">
+      </label>
+      <section id="tab-groups" class="tab-groups" aria-live="polite"></section>
+    </main>
+    <script type="module" src="./sidepanel.js"></script>
+  </body>
+</html>
