@@ -77,3 +77,16 @@ test("semantic status colors and focus ring tokens are used", async () => {
     assert.match(css, new RegExp(token));
   }
 });
+
+test("new tab category dashboard exposes accessible states and safe actions", async () => {
+  const { newtabHtml, newtabCss, newtabJs } = await readAll();
+
+  assert.match(newtabHtml, /aria-label="标签分类"/);
+  assert.match(newtabHtml, /id="dashboard-close-category"/);
+  assert.match(newtabJs, /setAttribute\("aria-label", `分类 \$\{category\.title\}，\$\{category\.count\} 个标签`\)/);
+  assert.match(newtabJs, /setAttribute\("aria-disabled", "true"\)/);
+  assert.match(newtabJs, /确定关闭分类「\$\{categoryTitle\}」中的 \$\{count\} 个标签/);
+  assert.match(newtabCss, /\.category-button\[aria-disabled="true"\]/);
+  assert.match(newtabCss, /\.category-button\.is-drop-target/);
+  assert.match(newtabCss, /grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(160px,\s*1fr\)\)/);
+});

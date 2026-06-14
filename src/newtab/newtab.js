@@ -192,6 +192,7 @@ function renderCategories(state) {
     button.classList.toggle("is-active", category.id === state.selectedCategoryId);
     button.setAttribute("role", "tab");
     button.setAttribute("aria-selected", category.id === state.selectedCategoryId ? "true" : "false");
+    button.setAttribute("aria-label", `分类 ${category.title}，${category.count} 个标签`);
 
     const title = document.createElement("span");
     title.className = "category-title";
