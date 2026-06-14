@@ -7,6 +7,7 @@ import {
   SCOPES
 } from "../sidepanel/sidepanel-model.js";
 import { openTabTrailSidePanel } from "../popup/popup-model.js";
+import { createStatusMessage } from "../shared/interaction-helpers.js";
 
 const ALL_CATEGORY_ID = "all";
 
@@ -114,5 +115,14 @@ export async function closeDashboardCategory({ tabsApi, confirm = async () => tr
   }
 
   await closeSelectedTabs({ tabsApi, confirm: async () => true }, tabIds);
-  return { closed: true, confirmed: true, count, tabIds };
+  return {
+    closed: true,
+    confirmed: true,
+    count,
+    tabIds,
+    recovery: {
+      kind: "recently-closed",
+      message: createStatusMessage("tabs-closed", { count, scopeLabel: `分类「${category.title}」` })
+    }
+  };
 }

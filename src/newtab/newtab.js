@@ -1,4 +1,10 @@
 import { browserApi } from "../shared/browser-api.js";
+import {
+  captureFocusKey,
+  createDebouncedTask,
+  createStatusMessage,
+  restoreFocusByKey
+} from "../shared/interaction-helpers.js";
 import { toTabSnapshot } from "../shared/recent-activity.js";
 import {
   activateTabFromDashboard,
@@ -38,10 +44,24 @@ let latestState = null;
 let previewTabs = [];
 let selectedCategoryId = "all";
 let draggedTabId = null;
+let hasPendingOrder = false;
 const selectedTabIds = new Set();
+const pendingOrderMessage = "有未应用排序";
+
+function announce(text) {
+  message.textContent = text;
+}
+
+function syncScopeButtons() {
+  scopeButtons.forEach((button) => {
+    const active = button.dataset.scope === scope;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+}
 
 function renderEmpty(container, text) {
-  const empty = document.createElement("p");
+  const empty = document.createElement(container.tagName === "UL" ? "li" : "p");
   empty.className = "empty-state";
   empty.textContent = text;
   container.replaceChildren(empty);
@@ -90,7 +110,7 @@ function renderSummary(state) {
   closedCount.textContent = String(state.summary.recentClosedCount);
 }
 
-function createTabRow(tab, group) {
+function createTabRow(tab, group, index = 0, sourceTabs = previewTabs) {
   const item = document.createElement("li");
   item.className = "tab-row";
   item.draggable = !group.readOnly;
@@ -111,6 +131,8 @@ function createTabRow(tab, group) {
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
   checkbox.className = "tab-select";
+  checkbox.dataset.tabId = String(tab.tabId);
+  checkbox.dataset.control = "select";
   checkbox.disabled = group.readOnly;
   checkbox.checked = selectedTabIds.has(tab.tabId);
   checkbox.setAttribute("aria-label", `选择 ${tab.title}`);
@@ -126,6 +148,9 @@ function createTabRow(tab, group) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "tab-row-inner";
+  button.dataset.tabId = String(tab.tabId);
+  button.dataset.control = "open";
+  button.setAttribute("aria-label", group.readOnly ? `重新打开 ${tab.title}` : `切换到 ${tab.title}`);
   button.addEventListener("click", () => {
     if (group.readOnly) {
       reopenClosedFromDashboard({ tabsApi: browserApi.tabs }, tab);
@@ -158,7 +183,65 @@ function createTabRow(tab, group) {
   }
 
   button.append(title, meta);
-  item.append(checkbox, button);
+
+  const moveCategoryButton = document.createElement("button");
+  moveCategoryButton.type = "button";
+  moveCategoryButton.className = "move-category";
+  moveCategoryButton.dataset.tabId = String(tab.tabId);
+  moveCategoryButton.dataset.control = "move-category";
+  moveCategoryButton.textContent = "移动到分类";
+  moveCategoryButton.disabled = group.readOnly;
+  moveCategoryButton.setAttribute("aria-label", `移动 ${tab.title} 到当前分类输入的分类`);
+  moveCategoryButton.addEventListener("click", async () => {
+    const name = categoryName.value.trim();
+    if (!name) {
+      announce("请输入分类名");
+      categoryName.focus();
+      return;
+    }
+    await assignCategoryToTabs(browserApi.storage.sync, latestState.preferences, [tab], name);
+    selectedCategoryId = `manual:${name}`;
+    announce(createStatusMessage("category-assigned", { count: 1, category: name }));
+    await render();
+  });
+
+  const upButton = document.createElement("button");
+  upButton.type = "button";
+  upButton.className = "icon-button";
+  upButton.dataset.tabId = String(tab.tabId);
+  upButton.dataset.control = "move-up";
+  upButton.textContent = "↑";
+  upButton.disabled = group.readOnly || index === 0;
+  upButton.setAttribute("aria-label", `将 ${tab.title} 上移`);
+  upButton.addEventListener("click", () => {
+    const focusKey = captureFocusKey(document);
+    const targetIndex = Math.max(0, previewTabs.findIndex((itemTab) => itemTab.tabId === tab.tabId) - 1);
+    previewTabs = reorderPreviewTabs(previewTabs, tab.tabId, targetIndex);
+    hasPendingOrder = true;
+    announce(`${latestState.summary.scopeLabel}${pendingOrderMessage}`);
+    renderCurrentCategory(latestState, focusKey);
+    renderActionState();
+  });
+
+  const downButton = document.createElement("button");
+  downButton.type = "button";
+  downButton.className = "icon-button";
+  downButton.dataset.tabId = String(tab.tabId);
+  downButton.dataset.control = "move-down";
+  downButton.textContent = "↓";
+  downButton.disabled = group.readOnly || index >= sourceTabs.length - 1;
+  downButton.setAttribute("aria-label", `将 ${tab.title} 下移`);
+  downButton.addEventListener("click", () => {
+    const focusKey = captureFocusKey(document);
+    const targetIndex = Math.min(previewTabs.length - 1, previewTabs.findIndex((itemTab) => itemTab.tabId === tab.tabId) + 1);
+    previewTabs = reorderPreviewTabs(previewTabs, tab.tabId, targetIndex);
+    hasPendingOrder = true;
+    announce(`${latestState.summary.scopeLabel}${pendingOrderMessage}`);
+    renderCurrentCategory(latestState, focusKey);
+    renderActionState();
+  });
+
+  item.append(checkbox, button, moveCategoryButton, upButton, downButton);
   return item;
 }
 
@@ -167,6 +250,10 @@ function getCategoryTabs(category) {
     return previewTabs;
   }
   if (category.kind === "domain") {
+    const ids = new Set(category.tabs.map((tab) => tab.tabId));
+    return previewTabs.filter((tab) => ids.has(tab.tabId));
+  }
+  if (category.kind === "manual") {
     const ids = new Set(category.tabs.map((tab) => tab.tabId));
     return previewTabs.filter((tab) => ids.has(tab.tabId));
   }
@@ -186,8 +273,6 @@ function renderCategories(state) {
     }
     if (category.canReceiveDrop) {
       button.classList.add("can-drop");
-    } else {
-      button.setAttribute("aria-disabled", "true");
     }
     button.classList.toggle("is-active", category.id === state.selectedCategoryId);
     button.setAttribute("role", "tab");
@@ -243,7 +328,7 @@ function renderCategories(state) {
       );
       selectedCategoryId = category.id;
       draggedTabId = null;
-      message.textContent = `已归类到 ${category.title}`;
+      announce(`已归类到 ${category.title}`);
       await render();
     });
     return button;
@@ -260,7 +345,7 @@ function clearDropTargets() {
   });
 }
 
-function renderCurrentCategory(state) {
+function renderCurrentCategory(state, focusKey = null) {
   if (state.emptyState.reason) {
     currentCategoryTitle.textContent = state.emptyState.title;
     renderEmpty(currentList, state.emptyState.description || state.emptyState.title);
@@ -274,14 +359,16 @@ function renderCurrentCategory(state) {
     renderEmpty(currentList, "这个分类暂时没有标签");
     return;
   }
-  currentList.replaceChildren(...sourceTabs.map((tab) => createTabRow(tab, category)));
+  currentList.replaceChildren(...sourceTabs.map((tab, index) => createTabRow(tab, category, index, sourceTabs)));
+  restoreFocusByKey(document, focusKey);
 }
 
 function renderActionState() {
   const category = latestState?.currentCategory || { id: "all", readOnly: false, canClose: false };
   closeSelectedButton.textContent = `关闭已选 (${selectedTabIds.size})`;
   closeSelectedButton.disabled = selectedTabIds.size === 0;
-  applyOrderButton.disabled = previewTabs.length === 0;
+  applyOrderButton.disabled = previewTabs.length === 0 || !hasPendingOrder;
+  applyOrderButton.textContent = hasPendingOrder ? "应用排序" : "排序已同步";
   assignCategoryButton.disabled = selectedTabIds.size === 0 || !categoryName.value.trim();
   closeCategoryButton.hidden = !category.canClose;
   closeCategoryButton.disabled = category.id === "all" || category.readOnly || !category.canClose;
@@ -307,6 +394,7 @@ async function render() {
   selectedCategoryId = latestState.selectedCategoryId;
   previewTabs = latestState.visibleTabs;
   renderSummary(latestState);
+  syncScopeButtons();
   renderCategories(latestState);
   renderCompactList(activeList, latestState.recentActive, "还没有最近活跃标签", (tab) => {
     activateTabFromDashboard({ tabsApi: browserApi.tabs, windowsApi: browserApi.windows }, tab);
@@ -321,12 +409,15 @@ async function render() {
 scopeButtons.forEach((button) => {
   button.addEventListener("click", () => {
     scope = button.dataset.scope;
-    scopeButtons.forEach((item) => item.classList.toggle("is-active", item === button));
+    selectedTabIds.clear();
+    syncScopeButtons();
     render();
   });
 });
 
-search.addEventListener("input", () => render());
+const debouncedRender = createDebouncedTask(() => render(), 120);
+
+search.addEventListener("input", () => debouncedRender());
 
 categoryName.addEventListener("input", () => renderActionState());
 
@@ -334,12 +425,12 @@ assignCategoryButton.addEventListener("click", async () => {
   const selected = previewTabs.filter((tab) => selectedTabIds.has(tab.tabId));
   const name = categoryName.value.trim();
   if (selected.length === 0) {
-    message.textContent = "请先选择要归类的标签";
+    announce("请先选择要归类的标签");
     renderActionState();
     return;
   }
   if (!name) {
-    message.textContent = "请输入分类名";
+    announce("请输入分类名");
     renderActionState();
     return;
   }
@@ -348,13 +439,15 @@ assignCategoryButton.addEventListener("click", async () => {
   selectedTabIds.clear();
   categoryName.value = "";
   selectedCategoryId = `manual:${name}`;
-  message.textContent = `已归类到 ${name}`;
+  announce(createStatusMessage("category-assigned", { count: selected.length, category: name }));
   await render();
 });
 
 applyOrderButton.addEventListener("click", async () => {
   await applyPreviewOrderToTabStrip(browserApi.tabs, previewTabs);
+  hasPendingOrder = false;
   await render();
+  announce(createStatusMessage("sort-applied", { scopeLabel: latestState.summary.scopeLabel }));
 });
 
 closeSelectedButton.addEventListener("click", async () => {
@@ -366,6 +459,7 @@ closeSelectedButton.addEventListener("click", async () => {
   if (result.closed) {
     selectedTabIds.clear();
     await render();
+    announce(result.recovery?.message || `已关闭 ${result.count} 个标签，可从最近关闭恢复`);
   }
 });
 
@@ -383,7 +477,7 @@ closeCategoryButton.addEventListener("click", async () => {
   if (result.closed) {
     selectedTabIds.clear();
     selectedCategoryId = "all";
-    message.textContent = `已关闭分类「${category.title}」中的 ${result.count} 个标签`;
+    announce(result.recovery?.message || `已关闭分类「${category.title}」中的 ${result.count} 个标签，可从最近关闭恢复`);
     await render();
   }
 });

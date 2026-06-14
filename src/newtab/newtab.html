@@ -18,9 +18,9 @@
             <span>搜索标签</span>
             <input id="dashboard-search" type="search" placeholder="标题、URL、域名" autocomplete="off">
           </label>
-          <div id="dashboard-scope" class="scope-switch" role="tablist" aria-label="标签范围">
-            <button type="button" class="scope-button is-active" data-scope="current-window">当前窗口</button>
-            <button type="button" class="scope-button" data-scope="all-windows">全部窗口</button>
+          <div id="dashboard-scope" class="scope-switch" aria-label="标签范围">
+            <button type="button" class="scope-button is-active" data-scope="current-window" aria-pressed="true">当前窗口</button>
+            <button type="button" class="scope-button" data-scope="all-windows" aria-pressed="false">全部窗口</button>
           </div>
         </div>
       </header>
@@ -68,8 +68,8 @@
               <button id="dashboard-close-selected" class="danger-action" type="button">关闭已选 (0)</button>
             </div>
           </div>
-          <ul id="dashboard-current-list" class="tab-list" aria-live="polite"></ul>
-          <p id="dashboard-message" class="dashboard-message">在这里整理标签，不会修改默认搜索设置。</p>
+          <ul id="dashboard-current-list" class="tab-list"></ul>
+          <p id="dashboard-message" class="dashboard-message" role="status" aria-live="polite" aria-atomic="true">在这里整理标签，不会修改默认搜索设置。</p>
         </section>
 
         <aside class="dashboard-column" aria-label="最近记录">

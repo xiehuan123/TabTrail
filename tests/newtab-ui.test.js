@@ -53,7 +53,7 @@ test("new tab dashboard wires category assignment and drag targets", async () =>
     /addEventListener\("dragenter"/,
     /addEventListener\("dragleave"/,
     /dataset\.canReceiveDrop/,
-    /aria-disabled/
+    /move-category/
   ]) {
     assert.match(js, pattern);
   }

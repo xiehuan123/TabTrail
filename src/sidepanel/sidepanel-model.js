@@ -1,4 +1,5 @@
 import { LIMITS, STORAGE_KEYS } from "../shared/constants.js";
+import { createScopeStatusText, createStatusMessage } from "../shared/interaction-helpers.js";
 import { readPreferences } from "../shared/preferences.js";
 import {
   clearClosedActivities,
@@ -187,19 +188,28 @@ export async function reopenRecentlyClosedFromPanel({ tabsApi }, tab) {
 export async function closeSelectedTabs({ tabsApi, confirm = async () => true }, tabIds) {
   const count = tabIds.length;
   if (count === 0) {
-    return { closed: false, confirmed: false, count };
+    return { closed: false, confirmed: false, count, tabIds: [] };
   }
 
   let confirmed = false;
   if (count >= LIMITS.bulkCloseConfirmThreshold) {
     confirmed = await confirm(count);
     if (!confirmed) {
-      return { closed: false, confirmed: false, count };
+      return { closed: false, confirmed: false, count, tabIds };
     }
   }
 
   await tabsApi.remove(tabIds);
-  return { closed: true, confirmed, count };
+  return {
+    closed: true,
+    confirmed,
+    count,
+    tabIds,
+    recovery: {
+      kind: "recently-closed",
+      message: createStatusMessage("tabs-closed", { count, scopeLabel: "当前范围" })
+    }
+  };
 }
 
 export async function togglePinnedPreference(syncArea, preferences, tab) {
@@ -240,6 +250,18 @@ export async function buildSidePanelState({
   const recentlyClosed = createRecentlyClosedGroup(closedActivities, now);
   const emptyState = getEmptyState({ selectedTabs, visibleTabs, query });
 
+  const scopeLabel = getScopeLabel(scope);
+  const summary = {
+    scopeLabel,
+    openTabCount: selectedTabs.length,
+    visibleTabCount: visibleTabs.length,
+    selectedScope: scope,
+    recentActiveCount: recentActive.length,
+    recentClosedCount: recentClosed.length,
+    query,
+    emptyReason: emptyState.reason
+  };
+
   return {
     scope,
     query,
@@ -248,14 +270,8 @@ export async function buildSidePanelState({
     recentActive,
     recentClosed,
     summary: {
-      scopeLabel: getScopeLabel(scope),
-      openTabCount: selectedTabs.length,
-      visibleTabCount: visibleTabs.length,
-      selectedScope: scope,
-      recentActiveCount: recentActive.length,
-      recentClosedCount: recentClosed.length,
-      query,
-      emptyReason: emptyState.reason
+      ...summary,
+      scopeStatusText: createScopeStatusText(summary)
     },
     emptyState,
     preferences,

@@ -63,6 +63,7 @@ test("builds new tab dashboard state from shared side panel data", async () => {
   assert.equal(state.surface, "newtab");
   assert.equal(state.summary.openTabCount, 2);
   assert.equal(state.summary.visibleTabCount, 1);
+  assert.equal(state.summary.scopeStatusText, "当前窗口：2 个标签，1 个匹配");
   assert.equal(state.searchHint, "搜索当前打开的标签");
   assert.deepEqual(state.recentActive.map((item) => item.tab.title), ["Docs"]);
   assert.equal(state.recentClosed[0].timeText, "刚刚");
@@ -209,7 +210,11 @@ test("closes manual or domain dashboard categories and rejects protected categor
     closed: true,
     confirmed: true,
     count: 2,
-    tabIds: [1, 2]
+    tabIds: [1, 2],
+    recovery: {
+      kind: "recently-closed",
+      message: "已关闭分类「工作」中的 2 个标签，可从最近关闭恢复"
+    }
   });
   assert.deepEqual(confirmCalls, [{ categoryTitle: "工作", count: 2 }]);
   assert.deepEqual(calls, [["tabs.remove", [1, 2]]]);

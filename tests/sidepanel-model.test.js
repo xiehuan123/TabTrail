@@ -187,7 +187,8 @@ test("builds side panel workbench summary and recent active time context", async
     recentActiveCount: 1,
     recentClosedCount: 1,
     query: "docs",
-    emptyReason: null
+    emptyReason: null,
+    scopeStatusText: "当前窗口：2 个标签，1 个匹配"
   });
   assert.deepEqual(state.recentActive.map((item) => item.tab.title), ["Docs"]);
   assert.equal(state.recentActive[0].timeText, "5 分钟前");
@@ -279,7 +280,16 @@ test("closes one or two selected tabs without confirmation", async () => {
   const result = await closeSelectedTabs({ tabsApi }, [1, 2]);
 
   assert.deepEqual(calls, [[1, 2]]);
-  assert.deepEqual(result, { closed: true, confirmed: false, count: 2 });
+  assert.deepEqual(result, {
+    closed: true,
+    confirmed: false,
+    count: 2,
+    tabIds: [1, 2],
+    recovery: {
+      kind: "recently-closed",
+      message: "已关闭当前范围中的 2 个标签，可从最近关闭恢复"
+    }
+  });
 });
 
 test("requires confirmation before closing three or more tabs", async () => {
@@ -293,8 +303,17 @@ test("requires confirmation before closing three or more tabs", async () => {
   const rejected = await closeSelectedTabs({ tabsApi, confirm: async () => false }, [1, 2, 3]);
   const accepted = await closeSelectedTabs({ tabsApi, confirm: async () => true }, [1, 2, 3]);
 
-  assert.deepEqual(rejected, { closed: false, confirmed: false, count: 3 });
-  assert.deepEqual(accepted, { closed: true, confirmed: true, count: 3 });
+  assert.deepEqual(rejected, { closed: false, confirmed: false, count: 3, tabIds: [1, 2, 3] });
+  assert.deepEqual(accepted, {
+    closed: true,
+    confirmed: true,
+    count: 3,
+    tabIds: [1, 2, 3],
+    recovery: {
+      kind: "recently-closed",
+      message: "已关闭当前范围中的 3 个标签，可从最近关闭恢复"
+    }
+  });
   assert.deepEqual(calls, [[1, 2, 3]]);
 });
 

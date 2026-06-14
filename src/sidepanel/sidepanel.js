@@ -1,4 +1,10 @@
 import { browserApi } from "../shared/browser-api.js";
+import {
+  captureFocusKey,
+  createDebouncedTask,
+  createStatusMessage,
+  restoreFocusByKey
+} from "../shared/interaction-helpers.js";
 import { toTabSnapshot } from "../shared/recent-activity.js";
 import {
   activateTabFromPanel,
@@ -19,6 +25,7 @@ const recentClosedList = document.querySelector("#recent-closed-list");
 const summaryOpenTabs = document.querySelector("#summary-open-tabs");
 const summaryVisibleTabs = document.querySelector("#summary-visible-tabs");
 const summaryRecentClosed = document.querySelector("#summary-recent-closed");
+const panelMessage = document.querySelector("#panel-message");
 const search = document.querySelector("#tab-search");
 const categoryName = document.querySelector("#category-name");
 const assignCategoryButton = document.querySelector("#assign-category");
@@ -28,17 +35,34 @@ let currentWindowId = null;
 let latestState = null;
 let previewTabs = [];
 let draggedTabId = null;
+let hasPendingOrder = false;
 const selectedTabIds = new Set();
+const pendingOrderMessage = "有未应用排序";
+
+function announce(message) {
+  panelMessage.textContent = message;
+}
+
+function syncScopeButtons() {
+  buttons.forEach((button) => {
+    const active = button.dataset.scope === scope;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+}
 
 buttons.forEach((button) => {
   button.addEventListener("click", () => {
     scope = button.dataset.scope;
-    buttons.forEach((item) => item.classList.toggle("is-active", item === button));
+    selectedTabIds.clear();
+    syncScopeButtons();
     render();
   });
 });
 
-search.addEventListener("input", () => render());
+const debouncedRender = createDebouncedTask(() => render(), 120);
+
+search.addEventListener("input", () => debouncedRender());
 
 assignCategoryButton.addEventListener("click", async () => {
   const selected = previewTabs.filter((tab) => selectedTabIds.has(tab.tabId));
@@ -54,6 +78,7 @@ assignCategoryButton.addEventListener("click", async () => {
   );
   selectedTabIds.clear();
   await render();
+  announce(createStatusMessage("category-assigned", { count: selected.length, category: categoryName.value.trim() }));
 });
 
 function syncActionState() {
@@ -96,6 +121,11 @@ function renderStructuredEmpty(emptyState) {
   groups.replaceChildren(empty);
 }
 
+function renderGroupsWithFocus(state, focusKey = captureFocusKey(document)) {
+  renderGroups(state);
+  restoreFocusByKey(document, focusKey);
+}
+
 function createTabRow(tab, index, group) {
   const item = document.createElement("li");
   item.className = "tab-item";
@@ -123,12 +153,16 @@ function createTabRow(tab, index, group) {
     const targetIndex = previewTabs.findIndex((itemTab) => itemTab.tabId === tab.tabId);
     previewTabs = reorderPreviewTabs(previewTabs, draggedTabId, targetIndex);
     draggedTabId = null;
+    hasPendingOrder = true;
+    announce(`${latestState.summary.scopeLabel}${pendingOrderMessage}`);
     renderGroups({ ...latestState, visibleTabs: previewTabs, groups: latestState.groups });
   });
 
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
   checkbox.className = "tab-select";
+  checkbox.dataset.tabId = String(tab.tabId);
+  checkbox.dataset.control = "select";
   checkbox.checked = selectedTabIds.has(tab.tabId);
   checkbox.disabled = group.readOnly;
   checkbox.setAttribute("aria-label", `选择 ${tab.title}`);
@@ -139,12 +173,15 @@ function createTabRow(tab, index, group) {
       selectedTabIds.delete(tab.tabId);
     }
     syncActionState();
-    renderGroups({ ...latestState, visibleTabs: previewTabs, groups: latestState.groups });
+    renderGroupsWithFocus({ ...latestState, visibleTabs: previewTabs, groups: latestState.groups });
   });
 
   const openButton = document.createElement("button");
   openButton.type = "button";
   openButton.className = "tab-open";
+  openButton.dataset.tabId = String(tab.tabId);
+  openButton.dataset.control = "open";
+  openButton.setAttribute("aria-label", group.readOnly ? `重新打开 ${tab.title}` : `切换到 ${tab.title}`);
   openButton.title = group.readOnly ? "重新打开此标签" : "切换到此标签";
   openButton.addEventListener("click", async () => {
     if (group.id === "system:recently-closed") {
@@ -177,6 +214,14 @@ function createTabRow(tab, index, group) {
   pinButton.className = "icon-button";
   pinButton.textContent = latestState.preferences.pinnedKeys.includes(`url:${tab.url}`) ? "★" : "☆";
   pinButton.title = "固定到 TabTrail";
+  pinButton.dataset.tabId = String(tab.tabId);
+  pinButton.dataset.control = "pin";
+  pinButton.setAttribute(
+    "aria-label",
+    latestState.preferences.pinnedKeys.includes(`url:${tab.url}`)
+      ? `取消固定 ${tab.title}`
+      : `固定 ${tab.title} 到 TabTrail`
+  );
   pinButton.disabled = group.readOnly;
   pinButton.addEventListener("click", async () => {
     await latestState.actions.togglePinned(tab);
@@ -188,10 +233,16 @@ function createTabRow(tab, index, group) {
   upButton.className = "icon-button";
   upButton.textContent = "↑";
   upButton.title = "上移";
+  upButton.dataset.tabId = String(tab.tabId);
+  upButton.dataset.control = "move-up";
+  upButton.setAttribute("aria-label", `将 ${tab.title} 上移`);
   upButton.disabled = group.readOnly || index === 0;
   upButton.addEventListener("click", () => {
+    const focusKey = captureFocusKey(document);
     previewTabs = reorderPreviewTabs(previewTabs, tab.tabId, Math.max(0, index - 1));
-    renderGroups({ ...latestState, visibleTabs: previewTabs, groups: latestState.groups });
+    hasPendingOrder = true;
+    announce(`${latestState.summary.scopeLabel}${pendingOrderMessage}`);
+    renderGroupsWithFocus({ ...latestState, visibleTabs: previewTabs, groups: latestState.groups }, focusKey);
   });
 
   const downButton = document.createElement("button");
@@ -199,10 +250,16 @@ function createTabRow(tab, index, group) {
   downButton.className = "icon-button";
   downButton.textContent = "↓";
   downButton.title = "下移";
+  downButton.dataset.tabId = String(tab.tabId);
+  downButton.dataset.control = "move-down";
+  downButton.setAttribute("aria-label", `将 ${tab.title} 下移`);
   downButton.disabled = group.readOnly || index >= previewTabs.length - 1;
   downButton.addEventListener("click", () => {
+    const focusKey = captureFocusKey(document);
     previewTabs = reorderPreviewTabs(previewTabs, tab.tabId, Math.min(previewTabs.length - 1, index + 1));
-    renderGroups({ ...latestState, visibleTabs: previewTabs, groups: latestState.groups });
+    hasPendingOrder = true;
+    announce(`${latestState.summary.scopeLabel}${pendingOrderMessage}`);
+    renderGroupsWithFocus({ ...latestState, visibleTabs: previewTabs, groups: latestState.groups }, focusKey);
   });
 
   const details = document.createElement("span");
@@ -236,10 +293,13 @@ function renderGroups(state) {
   const applyButton = document.createElement("button");
   applyButton.type = "button";
   applyButton.className = "text-button";
-  applyButton.textContent = "应用到标签栏";
+  applyButton.textContent = hasPendingOrder ? "应用排序" : "排序已同步";
+  applyButton.disabled = !hasPendingOrder;
   applyButton.addEventListener("click", async () => {
     await applyPreviewOrderToTabStrip(browserApi.tabs, previewTabs);
+    hasPendingOrder = false;
     await render();
+    announce(createStatusMessage("sort-applied", { scopeLabel: latestState.summary.scopeLabel }));
   });
 
   const closeButton = document.createElement("button");
@@ -256,6 +316,7 @@ function renderGroups(state) {
     if (result.closed) {
       selectedTabIds.clear();
       await render();
+      announce(result.recovery?.message || `已关闭 ${result.count} 个标签，可从最近关闭恢复`);
     }
   });
 
@@ -306,6 +367,7 @@ function renderSummary(summary) {
   summaryVisibleTabs.textContent = String(summary.visibleTabCount);
   summaryRecentClosed.textContent = String(summary.recentClosedCount);
   summaryOpenTabs.title = summary.scopeLabel;
+  announce(summary.scopeStatusText);
 }
 
 function renderCompactList(list, items, emptyText, onClick) {

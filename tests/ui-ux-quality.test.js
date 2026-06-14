@@ -84,9 +84,61 @@ test("new tab category dashboard exposes accessible states and safe actions", as
   assert.match(newtabHtml, /aria-label="标签分类"/);
   assert.match(newtabHtml, /id="dashboard-close-category"/);
   assert.match(newtabJs, /setAttribute\("aria-label", `分类 \$\{category\.title\}，\$\{category\.count\} 个标签`\)/);
-  assert.match(newtabJs, /setAttribute\("aria-disabled", "true"\)/);
+  assert.doesNotMatch(newtabJs, /setAttribute\("aria-disabled", "true"\)/);
   assert.match(newtabJs, /确定关闭分类「\$\{categoryTitle\}」中的 \$\{count\} 个标签/);
-  assert.match(newtabCss, /\.category-button\[aria-disabled="true"\]/);
+  assert.doesNotMatch(newtabCss, /\.category-button\[aria-disabled="true"\]/);
   assert.match(newtabCss, /\.category-button\.is-drop-target/);
   assert.match(newtabCss, /grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(160px,\s*1fr\)\)/);
+});
+
+test("major surfaces use dedicated status announcements instead of live list regions", async () => {
+  const { popupHtml, sidepanelHtml, newtabHtml } = await readAll();
+
+  for (const html of [popupHtml, sidepanelHtml, newtabHtml]) {
+    assert.match(html, /role="status"/);
+    assert.match(html, /aria-live="polite"/);
+    assert.match(html, /aria-atomic="true"/);
+  }
+
+  assert.doesNotMatch(sidepanelHtml, /id="tab-groups"[^>]*aria-live/);
+  assert.doesNotMatch(newtabHtml, /id="dashboard-current-list"[^>]*aria-live/);
+});
+
+test("scope controls use segmented button semantics instead of incomplete tablists", async () => {
+  const { sidepanelHtml, sidepanelJs, newtabHtml, newtabJs } = await readAll();
+
+  assert.doesNotMatch(sidepanelHtml, /class="scope-switch" role="tablist"/);
+  assert.doesNotMatch(newtabHtml, /class="scope-switch" role="tablist"/);
+  assert.match(sidepanelHtml, /aria-label="标签范围"/);
+  assert.match(newtabHtml, /aria-label="标签范围"/);
+  assert.match(sidepanelHtml, /aria-pressed="true"/);
+  assert.match(newtabHtml, /aria-pressed="true"/);
+  assert.match(sidepanelJs, /setAttribute\("aria-pressed"/);
+  assert.match(newtabJs, /setAttribute\("aria-pressed"/);
+});
+
+test("tab organization surfaces expose keyboard alternatives and focus restoration hooks", async () => {
+  const { sidepanelJs, newtabJs } = await readAll();
+
+  assert.match(sidepanelJs, /captureFocusKey/);
+  assert.match(sidepanelJs, /restoreFocusByKey/);
+  assert.match(newtabJs, /captureFocusKey/);
+  assert.match(newtabJs, /restoreFocusByKey/);
+  assert.match(newtabJs, /move-category/);
+  assert.match(newtabJs, /移动到分类/);
+  assert.match(newtabJs, /move-up/);
+  assert.match(newtabJs, /move-down/);
+  assert.match(newtabJs, /将 \$\{tab\.title\} 上移/);
+  assert.match(newtabJs, /将 \$\{tab\.title\} 下移/);
+});
+
+test("close and sort actions expose recovery and pending-state feedback", async () => {
+  const { sidepanelJs, newtabJs } = await readAll();
+
+  assert.match(sidepanelJs, /可从最近关闭恢复/);
+  assert.match(newtabJs, /可从最近关闭恢复/);
+  assert.match(sidepanelJs, /hasPendingOrder/);
+  assert.match(newtabJs, /hasPendingOrder/);
+  assert.match(sidepanelJs, /有未应用排序/);
+  assert.match(newtabJs, /有未应用排序/);
 });

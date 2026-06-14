@@ -29,9 +29,9 @@
         </section>
       </header>
       <section id="panel-tools" class="tool-panel" aria-label="整理工具">
-        <div class="scope-switch" role="tablist" aria-label="标签范围">
-          <button type="button" class="scope-button is-active" data-scope="current-window">当前窗口</button>
-          <button type="button" class="scope-button" data-scope="all-windows">全部窗口</button>
+        <div class="scope-switch" aria-label="标签范围">
+          <button type="button" class="scope-button is-active" data-scope="current-window" aria-pressed="true">当前窗口</button>
+          <button type="button" class="scope-button" data-scope="all-windows" aria-pressed="false">全部窗口</button>
         </div>
         <label class="search-field">
           <span>搜索</span>
@@ -57,8 +57,9 @@
         <p>TabTrail 不能直接隐藏浏览器原生顶部标签栏。可以先用侧边栏、新标签页和批量整理减少拥挤。</p>
         <p>关闭 3 个及以上标签前会再次确认，关闭后可在最近关闭中重新打开。</p>
       </section>
+      <p id="panel-message" class="status-message" role="status" aria-live="polite" aria-atomic="true">当前窗口：0 个标签，0 个匹配</p>
       <section id="panel-actions" class="panel-actions" aria-label="批量操作"></section>
-      <section id="tab-groups" class="tab-groups" aria-live="polite"></section>
+      <section id="tab-groups" class="tab-groups"></section>
     </main>
     <script type="module" src="./sidepanel.js"></script>
   </body>
