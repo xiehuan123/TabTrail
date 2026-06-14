@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">TabTrail logo</title>
+  <desc id="desc">A browser tab and trail path mark for the TabTrail extension.</desc>
+  <defs>
+    <linearGradient id="tabtrail-bg" x1="22" y1="18" x2="110" y2="116" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1f6feb"/>
+      <stop offset="1" stop-color="#167348"/>
+    </linearGradient>
+    <linearGradient id="tabtrail-tab" x1="36" y1="34" x2="94" y2="92" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e8f1ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#tabtrail-bg)"/>
+  <path d="M30 45c0-7.18 5.82-13 13-13h28c3.79 0 7.39 1.66 9.86 4.54L90 47h10c7.18 0 13 5.82 13 13v39H30V45Z" fill="#142033" opacity=".18"/>
+  <path d="M21 39c0-7.18 5.82-13 13-13h28c3.79 0 7.39 1.66 9.86 4.54L81 41h10c7.18 0 13 5.82 13 13v39H21V39Z" fill="url(#tabtrail-tab)"/>
+  <path d="M21 53h83" fill="none" stroke="#1f6feb" stroke-width="6" stroke-linecap="round" opacity=".24"/>
+  <path d="M42 83c13.5-24 31.5-24 45-7" fill="none" stroke="#167348" stroke-width="9" stroke-linecap="round"/>
+  <path d="M42 83c13.5-24 31.5-24 45-7" fill="none" stroke="#1f6feb" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="42" cy="83" r="9" fill="#1f6feb"/>
+  <circle cx="64" cy="67" r="7" fill="#167348"/>
+  <circle cx="87" cy="76" r="9" fill="#1f6feb"/>
+  <circle cx="42" cy="83" r="3" fill="#ffffff"/>
+  <circle cx="64" cy="67" r="2.5" fill="#ffffff"/>
+  <circle cx="87" cy="76" r="3" fill="#ffffff"/>
+</svg>

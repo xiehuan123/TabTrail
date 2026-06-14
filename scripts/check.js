@@ -5,6 +5,11 @@ const requiredFiles = [
   "manifest.json",
   "src/background/service-worker.js",
   "src/background/tab-events.js",
+  "src/assets/icons/tabtrail.svg",
+  "src/assets/icons/tabtrail-16.png",
+  "src/assets/icons/tabtrail-32.png",
+  "src/assets/icons/tabtrail-48.png",
+  "src/assets/icons/tabtrail-128.png",
   "src/shared/browser-api.js",
   "src/shared/constants.js",
   "src/shared/icons.js",
@@ -35,6 +40,13 @@ const manifest = JSON.parse(await readFile("manifest.json", "utf8"));
 assert.equal(manifest.manifest_version, 3);
 assert.equal(manifest.background.type, "module");
 assert.equal(manifest.action.default_popup, "src/popup/popup.html");
+assert.deepEqual(manifest.icons, {
+  "16": "src/assets/icons/tabtrail-16.png",
+  "32": "src/assets/icons/tabtrail-32.png",
+  "48": "src/assets/icons/tabtrail-48.png",
+  "128": "src/assets/icons/tabtrail-128.png"
+});
+assert.deepEqual(manifest.action.default_icon, manifest.icons);
 assert.equal(manifest.side_panel.default_path, "src/sidepanel/sidepanel.html");
 assert.deepEqual(
   new Set(manifest.permissions),

@@ -5,9 +5,21 @@
   "description": "快速找回最近标签，并整理当前打开的浏览器标签。",
   "minimum_chrome_version": "116",
   "permissions": ["tabs", "storage", "sidePanel", "sessions"],
+  "icons": {
+    "16": "src/assets/icons/tabtrail-16.png",
+    "32": "src/assets/icons/tabtrail-32.png",
+    "48": "src/assets/icons/tabtrail-48.png",
+    "128": "src/assets/icons/tabtrail-128.png"
+  },
   "action": {
     "default_title": "TabTrail",
-    "default_popup": "src/popup/popup.html"
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "src/assets/icons/tabtrail-16.png",
+      "32": "src/assets/icons/tabtrail-32.png",
+      "48": "src/assets/icons/tabtrail-48.png",
+      "128": "src/assets/icons/tabtrail-128.png"
+    }
   },
   "chrome_url_overrides": {
     "newtab": "src/newtab/newtab.html"
