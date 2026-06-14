@@ -3,7 +3,6 @@ import { toTabSnapshot } from "../shared/recent-activity.js";
 import {
   activateTabFromDashboard,
   buildNewTabDashboardState,
-  openDashboardSidePanel,
   reopenClosedFromDashboard
 } from "./newtab-model.js";
 import {
@@ -14,11 +13,14 @@ import {
 } from "../sidepanel/sidepanel-model.js";
 
 const search = document.querySelector("#dashboard-search");
-const openSidePanelButton = document.querySelector("#dashboard-open-side-panel");
 const scopeButtons = [...document.querySelectorAll(".scope-button")];
+const categoryGrid = document.querySelector("#dashboard-category-grid");
+const categoryName = document.querySelector("#dashboard-category-name");
+const assignCategoryButton = document.querySelector("#dashboard-assign-category");
+const currentCategoryTitle = document.querySelector("#dashboard-current-title");
+const currentList = document.querySelector("#dashboard-current-list");
 const activeList = document.querySelector("#dashboard-active-list");
 const closedList = document.querySelector("#dashboard-closed-list");
-const groupsContainer = document.querySelector("#dashboard-groups");
 const openCount = document.querySelector("#dashboard-open-count");
 const visibleCount = document.querySelector("#dashboard-visible-count");
 const closedCount = document.querySelector("#dashboard-closed-count");
@@ -30,6 +32,7 @@ let scope = SCOPES.currentWindow;
 let currentWindowId = null;
 let latestState = null;
 let previewTabs = [];
+let selectedCategoryId = "all";
 const selectedTabIds = new Set();
 
 function renderEmpty(container, text) {
@@ -140,44 +143,70 @@ function createTabRow(tab, group) {
   return item;
 }
 
-function renderGroups(state) {
+function getCategoryTabs(category) {
+  if (category.kind === "all") {
+    return previewTabs;
+  }
+  if (category.kind === "domain") {
+    const ids = new Set(category.tabs.map((tab) => tab.tabId));
+    return previewTabs.filter((tab) => ids.has(tab.tabId));
+  }
+  return category.tabs;
+}
+
+function renderCategories(state) {
+  categoryGrid.replaceChildren(...state.categories.map((category) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "category-button";
+    button.dataset.categoryId = category.id;
+    button.dataset.kind = category.kind;
+    if (category.readOnly) {
+      button.dataset.readOnly = "true";
+    }
+    button.classList.toggle("is-active", category.id === state.selectedCategoryId);
+    button.setAttribute("role", "tab");
+    button.setAttribute("aria-selected", category.id === state.selectedCategoryId ? "true" : "false");
+
+    const title = document.createElement("span");
+    title.className = "category-title";
+    title.textContent = category.title;
+
+    const meta = document.createElement("span");
+    meta.className = "category-meta";
+    meta.textContent = `${category.count} 个标签`;
+
+    button.append(title, meta);
+    button.addEventListener("click", () => {
+      selectedCategoryId = category.id;
+      render();
+    });
+    return button;
+  }));
+}
+
+function renderCurrentCategory(state) {
   if (state.emptyState.reason) {
-    renderEmpty(groupsContainer, state.emptyState.title);
+    currentCategoryTitle.textContent = state.emptyState.title;
+    renderEmpty(currentList, state.emptyState.description || state.emptyState.title);
     return;
   }
 
-  const groups = state.groups.filter((group) => {
-    return group.tabs.length > 0 || group.id === "system:recently-closed";
-  });
-
-  groupsContainer.replaceChildren(...groups.map((group) => {
-    const section = document.createElement("section");
-    section.className = "tab-group";
-    section.dataset.groupId = group.id;
-
-    const header = document.createElement("div");
-    header.className = "tab-group-header";
-
-    const title = document.createElement("h3");
-    title.textContent = `${group.title} (${group.tabs.length})`;
-    header.append(title);
-
-    const list = document.createElement("ul");
-    list.className = "tab-list";
-    const sourceTabs = group.kind === "domain"
-      ? previewTabs.filter((tab) => group.tabs.some((groupTab) => groupTab.tabId === tab.tabId))
-      : group.tabs;
-    list.replaceChildren(...sourceTabs.map((tab) => createTabRow(tab, group)));
-
-    section.append(header, list);
-    return section;
-  }));
+  const category = state.currentCategory;
+  const sourceTabs = getCategoryTabs(category);
+  currentCategoryTitle.textContent = `${category.title} (${sourceTabs.length})`;
+  if (sourceTabs.length === 0) {
+    renderEmpty(currentList, "这个分类暂时没有标签");
+    return;
+  }
+  currentList.replaceChildren(...sourceTabs.map((tab) => createTabRow(tab, category)));
 }
 
 function renderActionState() {
   closeSelectedButton.textContent = `关闭已选 (${selectedTabIds.size})`;
   closeSelectedButton.disabled = selectedTabIds.size === 0;
   applyOrderButton.disabled = previewTabs.length === 0;
+  assignCategoryButton.disabled = selectedTabIds.size === 0 || !categoryName.value.trim();
 }
 
 async function getOpenTabs() {
@@ -193,17 +222,20 @@ async function render() {
     tabs,
     currentWindowId,
     scope,
-    query: search.value
+    query: search.value,
+    categoryId: selectedCategoryId
   });
+  selectedCategoryId = latestState.selectedCategoryId;
   previewTabs = latestState.visibleTabs;
   renderSummary(latestState);
+  renderCategories(latestState);
   renderCompactList(activeList, latestState.recentActive, "还没有最近活跃标签", (tab) => {
     activateTabFromDashboard({ tabsApi: browserApi.tabs, windowsApi: browserApi.windows }, tab);
   });
   renderCompactList(closedList, latestState.recentClosed, "最近关闭为空", (tab) => {
     reopenClosedFromDashboard({ tabsApi: browserApi.tabs }, tab);
   });
-  renderGroups(latestState);
+  renderCurrentCategory(latestState);
   renderActionState();
 }
 
@@ -217,10 +249,7 @@ scopeButtons.forEach((button) => {
 
 search.addEventListener("input", () => render());
 
-openSidePanelButton.addEventListener("click", async () => {
-  const result = await openDashboardSidePanel({ sidePanelApi: browserApi.sidePanel }, currentWindowId);
-  message.textContent = result.ok ? "侧边栏已打开" : result.message;
-});
+categoryName.addEventListener("input", () => renderActionState());
 
 applyOrderButton.addEventListener("click", async () => {
   await applyPreviewOrderToTabStrip(browserApi.tabs, previewTabs);
@@ -248,5 +277,5 @@ async function init() {
 init().catch((error) => {
   console.error(error);
   message.textContent = "无法读取标签数据，请刷新新标签页后重试。";
-  renderEmpty(groupsContainer, "无法读取标签数据");
+  renderEmpty(currentList, "无法读取标签数据");
 });

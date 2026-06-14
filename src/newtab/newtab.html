@@ -18,7 +18,10 @@
             <span>搜索标签</span>
             <input id="dashboard-search" type="search" placeholder="标题、URL、域名" autocomplete="off">
           </label>
-          <button id="dashboard-open-side-panel" class="primary-action" type="button">打开侧边栏</button>
+          <div id="dashboard-scope" class="scope-switch" role="tablist" aria-label="标签范围">
+            <button type="button" class="scope-button is-active" data-scope="current-window">当前窗口</button>
+            <button type="button" class="scope-button" data-scope="all-windows">全部窗口</button>
+          </div>
         </div>
       </header>
 
@@ -37,7 +40,37 @@
         </div>
       </section>
 
+      <section class="category-board" aria-labelledby="dashboard-categories-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">分类</p>
+            <h2 id="dashboard-categories-title">按分类整理标签</h2>
+          </div>
+          <label class="category-create">
+            <span>分类名</span>
+            <input id="dashboard-category-name" type="text" placeholder="例如 工作、学习">
+          </label>
+          <button id="dashboard-assign-category" class="secondary-action" type="button" disabled>归类已选</button>
+        </div>
+        <div id="dashboard-category-grid" class="category-grid" role="tablist" aria-label="标签分类"></div>
+      </section>
+
       <div class="dashboard-layout">
+        <section id="dashboard-current-category" class="current-category-panel" aria-labelledby="dashboard-current-title">
+          <div class="dashboard-toolbar">
+            <div>
+              <p class="eyebrow">当前分类</p>
+              <h2 id="dashboard-current-title">全部</h2>
+            </div>
+            <div id="dashboard-actions" class="dashboard-actions" aria-label="整理操作">
+              <button id="dashboard-apply-order" class="secondary-action" type="button">应用排序</button>
+              <button id="dashboard-close-selected" class="danger-action" type="button">关闭已选 (0)</button>
+            </div>
+          </div>
+          <ul id="dashboard-current-list" class="tab-list" aria-live="polite"></ul>
+          <p id="dashboard-message" class="dashboard-message">在这里整理标签，不会修改默认搜索设置。</p>
+        </section>
+
         <aside class="dashboard-column" aria-label="最近记录">
           <section id="dashboard-recent-active" class="dashboard-section" aria-labelledby="dashboard-active-title">
             <h2 id="dashboard-active-title">最近活跃</h2>
@@ -47,29 +80,11 @@
             <h2 id="dashboard-closed-title">最近关闭</h2>
             <ul id="dashboard-closed-list" class="compact-list"></ul>
           </section>
-        </aside>
-
-        <section class="dashboard-main" aria-labelledby="dashboard-tabs-title">
-          <div class="dashboard-toolbar">
-            <h2 id="dashboard-tabs-title">打开的标签</h2>
-            <div id="dashboard-scope" class="scope-switch" role="tablist" aria-label="标签范围">
-              <button type="button" class="scope-button is-active" data-scope="current-window">当前窗口</button>
-              <button type="button" class="scope-button" data-scope="all-windows">全部窗口</button>
-            </div>
-          </div>
-          <section id="dashboard-groups" class="dashboard-groups" aria-live="polite"></section>
-        </section>
-
-        <aside id="dashboard-actions" class="dashboard-actions" aria-label="整理操作">
-          <h2>整理操作</h2>
           <section id="dashboard-focus-mode" class="focus-panel" aria-labelledby="dashboard-focus-title">
             <h3 id="dashboard-focus-title">专注整理</h3>
             <p>TabTrail 不能直接隐藏浏览器原生顶部标签栏。可以用新标签页和侧边栏替代浏览器标签栏的日常整理入口。</p>
             <p>批量关闭会先确认，关闭后可从最近关闭重新打开。</p>
           </section>
-          <button id="dashboard-apply-order" class="secondary-action" type="button">应用排序</button>
-          <button id="dashboard-close-selected" class="danger-action" type="button">关闭已选 (0)</button>
-          <p id="dashboard-message" class="dashboard-message">在这里整理标签，不会修改默认搜索设置。</p>
         </aside>
       </div>
     </main>

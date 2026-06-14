@@ -2,25 +2,31 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-test("new tab dashboard exposes workbench regions without search override wording", async () => {
+test("new tab dashboard exposes category-first regions without side panel entry", async () => {
   const html = await readFile("src/newtab/newtab.html", "utf8");
   const css = await readFile("src/newtab/newtab.css", "utf8");
 
   for (const id of [
     "dashboard-search",
-    "dashboard-open-side-panel",
     "dashboard-scope",
+    "dashboard-category-grid",
+    "dashboard-category-name",
+    "dashboard-assign-category",
+    "dashboard-current-category",
+    "dashboard-current-list",
     "dashboard-recent-active",
     "dashboard-recent-closed",
-    "dashboard-groups",
     "dashboard-actions"
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
 
+  assert.doesNotMatch(html, /id="dashboard-open-side-panel"|打开侧边栏/);
   assert.doesNotMatch(html, /默认搜索引擎|搜索引擎设置|chrome_settings_overrides/);
   assert.match(css, /\.dashboard-shell/);
-  assert.match(css, /\.dashboard-layout/);
+  assert.match(css, /\.category-grid/);
+  assert.match(css, /grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(160px,\s*1fr\)\)/);
+  assert.match(css, /\.current-category-panel/);
   assert.match(css, /@media \(max-width:\s*767px\)/);
   assert.match(css, /min-height:\s*44px/);
 });
