@@ -45,9 +45,9 @@
 
 ## 6. 版本与 README
 
-- [ ] 6.1 在功能和测试完成后，将 `manifest.json` 版本号从 `0.1.0` 升级到 `0.2.0`
-- [ ] 6.2 同步将 `package.json` 版本号从 `0.1.0` 升级到 `0.2.0`
-- [ ] 6.3 新增中文 `README.md`，说明安装、功能、权限、隐私、浏览器限制和使用方式
-- [ ] 6.4 为版本一致性和 README 关键内容补充测试或检查
-- [ ] 6.5 运行 `npm test`、`npm run check`、`npm run build` 和 `npm run verify`
-- [ ] 6.6 完成版本与 README 后提交 git commit
+- [x] 6.1 在功能和测试完成后，将 `manifest.json` 版本号从 `0.1.0` 升级到 `0.2.0`
+- [x] 6.2 同步将 `package.json` 版本号从 `0.1.0` 升级到 `0.2.0`
+- [x] 6.3 新增中文 `README.md`，说明安装、功能、权限、隐私、浏览器限制和使用方式
+- [x] 6.4 为版本一致性和 README 关键内容补充测试或检查
+- [x] 6.5 运行 `npm test`、`npm run check`、`npm run build` 和 `npm run verify`
+- [x] 6.6 完成版本与 README 后提交 git commit

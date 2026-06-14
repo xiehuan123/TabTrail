@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "TabTrail",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "快速找回最近标签，并整理当前打开的浏览器标签。",
   "minimum_chrome_version": "116",
   "permissions": ["tabs", "storage", "sidePanel", "sessions"],
