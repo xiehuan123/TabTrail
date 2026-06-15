@@ -2,3 +2,9 @@ dist/
 .worktrees/
 node_modules/
 .legna/
+.codex/
+image.png
+blog-output.md
+assets/covers/
+openspec/changes/assign-auto-tabs-to-manual-category/
+openspec/changes/*.untracked-backup/
