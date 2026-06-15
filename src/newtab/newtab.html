@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>TabTrail 工作台</title>
+    <link rel="stylesheet" href="../vendor/driverjs/driver.css">
     <link rel="stylesheet" href="./newtab.css">
   </head>
   <body>
@@ -14,18 +15,18 @@
           <h1>标签工作台</h1>
         </div>
         <div class="dashboard-command">
-          <label class="dashboard-search">
+          <label class="dashboard-search" data-onboarding-target="search">
             <span>搜索标签</span>
             <input id="dashboard-search" type="search" placeholder="标题、URL、域名" autocomplete="off">
           </label>
-          <div id="dashboard-scope" class="scope-switch" aria-label="标签范围">
+          <div id="dashboard-scope" class="scope-switch" aria-label="标签范围" data-onboarding-target="scope">
             <button type="button" class="scope-button is-active" data-scope="current-window" aria-pressed="true">当前窗口</button>
             <button type="button" class="scope-button" data-scope="all-windows" aria-pressed="false">全部窗口</button>
           </div>
         </div>
       </header>
 
-      <section id="first-install-onboarding" class="onboarding-panel" aria-labelledby="onboarding-title" role="status" aria-live="polite" aria-atomic="true" hidden>
+      <section id="first-install-onboarding" class="onboarding-panel" aria-labelledby="onboarding-title" role="status" aria-live="polite" aria-atomic="true" data-onboarding-target="welcome" hidden>
         <div class="onboarding-copy">
           <p class="eyebrow">首次安装</p>
           <h2 id="onboarding-title">欢迎使用 TabTrail</h2>
@@ -66,7 +67,7 @@
         </div>
       </section>
 
-      <section class="category-board" aria-labelledby="dashboard-categories-title">
+      <section class="category-board" aria-labelledby="dashboard-categories-title" data-onboarding-target="categories">
         <div class="section-heading">
           <div>
             <p class="eyebrow">分类</p>
@@ -82,7 +83,7 @@
       </section>
 
       <div class="dashboard-layout">
-        <section id="dashboard-current-category" class="current-category-panel" aria-labelledby="dashboard-current-title">
+        <section id="dashboard-current-category" class="current-category-panel" aria-labelledby="dashboard-current-title" data-onboarding-target="current-list">
           <div class="dashboard-toolbar">
             <div>
               <p class="eyebrow">当前分类</p>
@@ -103,7 +104,7 @@
             <h2 id="dashboard-active-title">最近活跃</h2>
             <ul id="dashboard-active-list" class="compact-list"></ul>
           </section>
-          <section id="dashboard-recent-closed" class="dashboard-section" aria-labelledby="dashboard-closed-title">
+          <section id="dashboard-recent-closed" class="dashboard-section" aria-labelledby="dashboard-closed-title" data-onboarding-target="recent-closed">
             <h2 id="dashboard-closed-title">最近关闭</h2>
             <ul id="dashboard-closed-list" class="compact-list"></ul>
           </section>
@@ -111,11 +112,12 @@
             <h3 id="dashboard-focus-title">专注整理</h3>
             <p>TabTrail 不能直接隐藏浏览器原生顶部标签栏。可以用新标签页和侧边栏替代浏览器标签栏的日常整理入口。</p>
             <p>批量关闭会先确认，关闭后可从最近关闭重新打开。</p>
-            <button id="onboarding-reopen" class="secondary-action" type="button">重新查看新手引导</button>
+            <button id="onboarding-reopen" class="secondary-action" type="button" data-onboarding-target="reopen">重新查看新手引导</button>
           </section>
         </aside>
       </div>
     </main>
+    <script src="../vendor/driverjs/driver.js.iife.js"></script>
     <script type="module" src="./newtab.js"></script>
   </body>
 </html>

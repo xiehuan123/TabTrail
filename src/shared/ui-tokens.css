@@ -27,6 +27,7 @@
   --tt-space-4: 16px;
   --tt-space-5: 20px;
   --tt-shadow-sm: 0 1px 2px rgb(15 23 42 / 8%);
+  --tt-shadow-lg: 0 16px 40px rgb(15 23 42 / 18%);
   --tt-focus-ring: 0 0 0 3px rgb(31 111 235 / 24%);
   --tt-motion-fast: 160ms;
   --tt-motion-normal: 220ms;

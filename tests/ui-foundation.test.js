@@ -78,3 +78,22 @@ test("shared UI tokens are imported by popup and side panel styles", async () =>
   assert.match(popupCss, /@import url\("\.\.\/shared\/ui-tokens\.css"\);/);
   assert.match(sidePanelCss, /@import url\("\.\.\/shared\/ui-tokens\.css"\);/);
 });
+
+test("all shared UI token references are defined", async () => {
+  const files = [
+    "src/shared/ui-tokens.css",
+    "src/popup/popup.css",
+    "src/sidepanel/sidepanel.css",
+    "src/newtab/newtab.css"
+  ];
+  const [tokens, ...cssFiles] = await Promise.all(files.map((file) => readFile(file, "utf8")));
+  const definitions = new Set([...tokens.matchAll(/--tt-[\w-]+:/g)].map(([match]) => match.slice(0, -1)));
+  const references = new Set(
+    cssFiles
+      .flatMap((source) => [...source.matchAll(/var\((--tt-[\w-]+)/g)].map((match) => match[1]))
+  );
+
+  for (const reference of references) {
+    assert.ok(definitions.has(reference), `${reference} is referenced but not defined`);
+  }
+});

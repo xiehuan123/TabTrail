@@ -70,6 +70,47 @@ test("new tab dashboard exposes first install onboarding without blocking the wo
   assert.match(css, /@media \(max-width:\s*767px\)/);
 });
 
+test("new tab dashboard wires Driver.js interactive onboarding with stable targets", async () => {
+  const html = await readFile("src/newtab/newtab.html", "utf8");
+  const css = await readFile("src/newtab/newtab.css", "utf8");
+  const js = await readFile("src/newtab/newtab.js", "utf8");
+  const tourJs = await readFile("src/newtab/onboarding-tour.js", "utf8");
+
+  assert.match(html, /href="\.\.\/vendor\/driverjs\/driver\.css"/);
+  assert.match(html, /src="\.\.\/vendor\/driverjs\/driver\.js\.iife\.js"/);
+  assert.match(js, /import \{ createOnboardingTour \} from "\.\/onboarding-tour\.js"/);
+
+  for (const target of [
+    "welcome",
+    "search",
+    "scope",
+    "categories",
+    "current-list",
+    "recent-closed",
+    "reopen"
+  ]) {
+    assert.match(html, new RegExp(`data-onboarding-target="${target}"`));
+  }
+
+  for (const pattern of [
+    /globalThis\.driver\?\.js\?\.driver/,
+    /createOnboardingTour/,
+    /onComplete/,
+    /onSkip/,
+    /onUnavailable/,
+    /allowKeyboardControl:\s*true/,
+    /progressText:\s*"{{current}} \/ {{total}}"/,
+    /doneBtnText:\s*"完成"/,
+    /nextBtnText:\s*"下一步"/,
+    /prevBtnText:\s*"上一步"/
+  ]) {
+    assert.match(tourJs, pattern);
+  }
+
+  assert.match(css, /\.tabtrail-driver-popover/);
+  assert.match(css, /\.driver-popover/);
+});
+
 test("new tab dashboard wires onboarding state transitions", async () => {
   const js = await readFile("src/newtab/newtab.js", "utf8");
 
@@ -77,6 +118,8 @@ test("new tab dashboard wires onboarding state transitions", async () => {
     /markOnboardingCompleted/,
     /markOnboardingSkipped/,
     /firstInstallGuideStatus === "pending"/,
+    /startOnboardingTour/,
+    /createOnboardingTour/,
     /onboardingStart/,
     /onboardingSkip/,
     /onboardingReopen/,

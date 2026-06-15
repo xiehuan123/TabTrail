@@ -173,6 +173,76 @@ h2 {
   justify-self: start;
 }
 
+.driver-popover.tabtrail-driver-popover {
+  width: min(320px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  border: 1px solid var(--tt-color-border-strong);
+  border-radius: var(--tt-radius-md);
+  padding: var(--tt-space-3);
+  color: var(--tt-color-text);
+  background: var(--tt-color-surface);
+  box-shadow: var(--tt-shadow-lg);
+}
+
+.driver-popover.tabtrail-driver-popover * {
+  box-sizing: border-box;
+  font-family: inherit;
+  letter-spacing: 0;
+}
+
+.driver-popover.tabtrail-driver-popover .driver-popover-title {
+  padding-right: 32px;
+  color: var(--tt-color-text);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.driver-popover.tabtrail-driver-popover .driver-popover-description {
+  overflow-wrap: anywhere;
+  color: var(--tt-color-text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.driver-popover.tabtrail-driver-popover .driver-popover-close-btn {
+  width: 32px;
+  height: 32px;
+  color: var(--tt-color-text-muted);
+}
+
+.driver-popover.tabtrail-driver-popover .driver-popover-footer {
+  gap: var(--tt-space-2);
+  margin-top: var(--tt-space-3);
+}
+
+.driver-popover.tabtrail-driver-popover .driver-popover-navigation-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tt-space-2);
+}
+
+.driver-popover.tabtrail-driver-popover .driver-popover-navigation-btns button {
+  min-height: 36px;
+  margin: 0;
+  border: 1px solid var(--tt-color-border-strong);
+  border-radius: var(--tt-radius-md);
+  padding: 0 var(--tt-space-2);
+  background: var(--tt-color-surface);
+  color: var(--tt-color-text-muted);
+  text-shadow: none;
+}
+
+.driver-popover.tabtrail-driver-popover .driver-popover-next-btn {
+  border-color: var(--tt-color-primary);
+  background: var(--tt-color-primary);
+  color: #ffffff;
+}
+
+.driver-popover.tabtrail-driver-popover .driver-popover-progress-text {
+  color: var(--tt-color-text-subtle);
+  font-size: 12px;
+}
+
 .secondary-action:disabled,
 .danger-action:disabled,
 .scope-button:disabled {
@@ -482,6 +552,10 @@ h2 {
 
   .onboarding-actions button {
     flex: 1 1 160px;
+  }
+
+  .driver-popover.tabtrail-driver-popover {
+    width: min(300px, calc(100vw - 24px));
   }
 
   .dashboard-actions {

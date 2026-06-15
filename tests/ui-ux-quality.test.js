@@ -155,6 +155,31 @@ test("first install onboarding is accessible and publish-compliance aware", asyn
   assert.match(newtabHtml, /跳过/);
   assert.match(newtabHtml, /重新查看新手引导/);
   assert.match(newtabCss, /\.onboarding-panel/);
+  assert.match(newtabCss, /\.tabtrail-driver-popover/);
   assert.match(newtabCss, /min-height:\s*44px/);
   assert.doesNotMatch(source, /https?:\/\/|chrome_settings_overrides|默认搜索框/);
+});
+
+test("first install onboarding uses stable Driver.js targets without remote resources", async () => {
+  const { newtabHtml, newtabJs } = await readAll();
+  const tourJs = await readFile("src/newtab/onboarding-tour.js", "utf8");
+  const source = [newtabHtml, newtabJs, tourJs].join("\n");
+
+  for (const target of [
+    "welcome",
+    "search",
+    "scope",
+    "categories",
+    "current-list",
+    "recent-closed",
+    "reopen"
+  ]) {
+    assert.match(newtabHtml, new RegExp(`data-onboarding-target="${target}"`));
+  }
+
+  assert.match(newtabHtml, /src="\.\.\/vendor\/driverjs\/driver\.js\.iife\.js"/);
+  assert.match(newtabHtml, /href="\.\.\/vendor\/driverjs\/driver\.css"/);
+  assert.match(tourJs, /const tour = driverFactory\(\{/);
+  assert.match(tourJs, /showProgress:\s*true/);
+  assert.doesNotMatch(source, /https?:\/\/|unpkg|jsdelivr|cdnjs|intro\.js/i);
 });

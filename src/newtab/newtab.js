@@ -24,6 +24,7 @@ import {
   reorderPreviewTabs,
   SCOPES
 } from "../sidepanel/sidepanel-model.js";
+import { createOnboardingTour } from "./onboarding-tour.js";
 
 const search = document.querySelector("#dashboard-search");
 const scopeButtons = [...document.querySelectorAll(".scope-button")];
@@ -56,6 +57,7 @@ let hasPendingOrder = false;
 const selectedTabIds = new Set();
 const pendingOrderMessage = "有未应用排序";
 let onboardingInitialized = false;
+let onboardingTour = null;
 
 function announce(text) {
   message.textContent = text;
@@ -69,16 +71,6 @@ function hideOnboarding() {
   firstInstallOnboarding.hidden = true;
 }
 
-function syncOnboardingState(preferences) {
-  if (onboardingInitialized) {
-    return;
-  }
-  onboardingInitialized = true;
-  if (preferences.onboarding?.firstInstallGuideStatus === "pending") {
-    showOnboarding();
-  }
-}
-
 async function completeOnboarding(action) {
   const result = action === "skipped"
     ? await markOnboardingSkipped(browserApi.storage.sync)
@@ -87,6 +79,43 @@ async function completeOnboarding(action) {
   announce(result.ok
     ? "新手引导已关闭"
     : "新手引导已关闭，但状态无法同步保存");
+  return result;
+}
+
+function startOnboardingTour({ persistResult = false } = {}) {
+  showOnboarding();
+  onboardingTour?.destroy();
+  onboardingTour = createOnboardingTour({
+    onComplete: () => {
+      if (persistResult) {
+        completeOnboarding("completed");
+        search.focus();
+        return;
+      }
+      announce("新手引导已完成");
+    },
+    onSkip: () => {
+      if (persistResult) {
+        completeOnboarding("skipped");
+        return;
+      }
+      announce("已关闭新手引导");
+    },
+    onUnavailable: () => {
+      announce("新手引导已打开，可使用面板中的按钮继续或跳过");
+    }
+  });
+  onboardingTour.start();
+}
+
+function syncOnboardingState(preferences) {
+  if (onboardingInitialized) {
+    return;
+  }
+  onboardingInitialized = true;
+  if (preferences.onboarding?.firstInstallGuideStatus === "pending") {
+    startOnboardingTour({ persistResult: true });
+  }
 }
 
 function syncScopeButtons() {
@@ -468,8 +497,7 @@ onboardingSkip.addEventListener("click", () => {
 });
 
 onboardingReopen.addEventListener("click", () => {
-  showOnboarding();
-  firstInstallOnboarding.focus?.();
+  startOnboardingTour();
   announce("已重新打开新手引导");
 });
 
