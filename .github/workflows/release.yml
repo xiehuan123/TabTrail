@@ -1,0 +1,48 @@
+name: Release Extension
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and upload release package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify project
+        run: npm run verify
+
+      - name: Build extension
+        run: npm run build
+
+      - name: Package dist
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          archive="tabtrail-${tag}.zip"
+          zip -r "${archive}" dist
+          echo "archive=${archive}" >> "$GITHUB_OUTPUT"
+        id: package
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.package.outputs.archive }}
+          fail_on_unmatched_files: true
+          generate_release_notes: true
