@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TabTrail 隐私政策</title>
+    <meta name="description" content="TabTrail Chromium 浏览器扩展隐私政策">
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f8fb;
+        --panel: #ffffff;
+        --text: #1f2937;
+        --muted: #5f6b7a;
+        --line: #d9dee7;
+        --accent: #2563eb;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.7;
+      }
+
+      main {
+        width: min(920px, calc(100% - 32px));
+        margin: 40px auto;
+        padding: 40px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      h1,
+      h2 {
+        line-height: 1.25;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 32px;
+      }
+
+      h2 {
+        margin: 32px 0 12px;
+        font-size: 21px;
+      }
+
+      p,
+      ul {
+        margin: 0 0 16px;
+      }
+
+      ul {
+        padding-left: 24px;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      code {
+        padding: 2px 5px;
+        background: #eef2f7;
+        border-radius: 4px;
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 0.92em;
+      }
+
+      .meta {
+        color: var(--muted);
+        margin-bottom: 28px;
+      }
+
+      @media (max-width: 640px) {
+        main {
+          width: 100%;
+          margin: 0;
+          padding: 24px 18px;
+          border: 0;
+          border-radius: 0;
+        }
+
+        h1 {
+          font-size: 26px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>TabTrail 隐私政策</h1>
+      <p class="meta">生效日期：2026-06-20</p>
+
+      <p>TabTrail 是一个 Chromium 浏览器扩展，用来记录最近操作的浏览器标签，并把当前打开的标签按最近活跃、最近关闭、手动分类和网站域名快速整理。</p>
+      <p>TabTrail 只在浏览器扩展本地环境内工作，不包含服务器、账号系统或外部上传逻辑。</p>
+
+      <h2>收集和使用的数据</h2>
+      <p>TabTrail 会使用 Chrome 扩展 API 读取当前打开标签的标题、URL、窗口、顺序和激活状态，用于展示最近活跃标签、搜索标签、切换标签、分类整理和批量关闭。</p>
+      <p>TabTrail 会使用 Chrome 的最近关闭会话数据，用于在本地展示最近关闭标签并帮助用户重新打开。</p>
+      <p>TabTrail 不读取网页正文内容，不记录表单输入、账号密码、支付信息或网页中的私人通信内容。</p>
+
+      <h2>本机保存的数据</h2>
+      <p>以下数据只写入 <code>chrome.storage.local</code>：</p>
+      <ul>
+        <li>最近打开标签记录</li>
+        <li>最近激活标签记录</li>
+        <li>最近关闭标签记录</li>
+      </ul>
+      <p>最近活动记录最多保留 100 条。</p>
+
+      <h2>浏览器同步的数据</h2>
+      <p>以下轻量数据写入 <code>chrome.storage.sync</code>：</p>
+      <ul>
+        <li>手动分类元数据</li>
+        <li>TabTrail 内固定状态</li>
+        <li>预览排序偏好</li>
+        <li>视图偏好</li>
+        <li>扩展图标打开侧边栏的入口偏好</li>
+        <li>首次安装新手引导状态</li>
+      </ul>
+      <p>最近打开、激活、关闭活动记录不会写入同步存储。</p>
+      <p>如果用户在浏览器中开启了 Chrome Sync，<code>chrome.storage.sync</code> 中的轻量偏好可能由浏览器账号同步。TabTrail 不会把这些数据上传到 TabTrail 自有服务器。</p>
+
+      <h2>数据共享和出售</h2>
+      <p>TabTrail 不出售用户数据，不向第三方共享用户数据，不接入广告、统计分析或外部追踪服务。</p>
+
+      <h2>数据保留和删除</h2>
+      <p>本机最近活动记录最多保留 100 条，并会随用户使用自动更新。用户可以通过卸载扩展、清除扩展数据或清除浏览器站点/扩展存储来删除 TabTrail 保存的数据。</p>
+
+      <h2>不做的事情</h2>
+      <ul>
+        <li>不读取网页正文内容。</li>
+        <li>不追踪完整浏览历史。</li>
+        <li>不上传最近活动记录。</li>
+        <li>不接入外部服务器。</li>
+        <li>不改变浏览器原生 pinned 状态。</li>
+        <li>不修改默认搜索引擎、主页或地址栏搜索行为。</li>
+        <li>不直接隐藏浏览器原生顶部标签栏。</li>
+        <li>不通过首次安装交互式引导上传标签数据，也不加载远程脚本或远程样式。</li>
+      </ul>
+
+      <h2>首次安装引导</h2>
+      <p>首次安装后，TabTrail 会打开扩展内的新标签页工作台，并展示一次性 Driver.js 交互式新手引导。用户可以完成、关闭或跳过引导；完成或跳过后，引导只展示一次。</p>
+      <p>引导状态只保存为轻量偏好，用于判断是否再次展示。Driver.js 资源随扩展本地打包，不从 CDN 或远程地址加载。</p>
+
+      <h2>最近关闭与恢复</h2>
+      <p>最近关闭记录只保存在本地，用于从 popup、side panel 或新标签页重新打开 URL。专注整理中关闭的标签仍依赖最近关闭记录恢复，TabTrail 不会把这些标签上传到服务器。</p>
+
+      <h2>联系方式</h2>
+      <p>如对本隐私政策有疑问，可以通过 GitHub Issues 联系项目维护者：<a href="https://github.com/xiehuan123/TabTrail/issues">https://github.com/xiehuan123/TabTrail/issues</a></p>
+    </main>
+  </body>
+</html>
